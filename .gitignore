@@ -1,0 +1,17 @@
+# This file tells git what to ignore when pushing stuff to GitHub. This will prevent
+# unwanted files and data from getting stored.
+
+# ignore MAC junk files #
+
+*.DS_Store
+
+
+# These files typically hold environment variables (like secret keys and such
+# we don't want them saved
+
+*.env
+
+node_modules
+jspm_packages
+
+.serverless

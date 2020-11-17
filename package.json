@@ -1,0 +1,19 @@
+{
+  "name": "videotutorial",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^8.2.0",
+    "slack": "^11.0.2"
+  },
+  "devDependencies": {
+    "serverless": "^2.11.1",
+    "serverless-offline": "^6.8.0"
+  }
+}
