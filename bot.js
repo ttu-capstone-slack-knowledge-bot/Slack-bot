@@ -84,6 +84,9 @@ function handleEvent(data)
           channel: data.event.channel,
           text: "you know. Just livin' one day at a time."
         };
+
+        Slack.chat.postMessage(params);
+        return;
       }
       else if (data.event.text.includes("color is the sky"))
       {
@@ -92,6 +95,9 @@ function handleEvent(data)
           channel: data.event.channel,
           text: "Probably blue. But I don't have eyes, so who knows."
         };
+
+        Slack.chat.postMessage(params);
+        return;
       }
       else if (data.event.text.includes("meaning of life"))
       {
@@ -100,6 +106,9 @@ function handleEvent(data)
           channel: data.event.channel,
           text: "42. It's always 42."
         };
+
+        Slack.chat.postMessage(params);
+        return;
       }
     break;
   }
