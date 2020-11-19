@@ -127,11 +127,10 @@ function handleEvent(data)
           token: process.env.AUTH_TOKEN,
           channel: data.event.channel,
           text: "Sorry, I don't know how to handle that question yet."
+        }
+          
       };
 
-      Slack.chat.postMessage(params);
-        return;
-        
     break;
   }
 
