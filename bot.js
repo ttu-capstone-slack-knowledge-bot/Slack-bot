@@ -128,6 +128,9 @@ function handleEvent(data)
           channel: data.event.channel,
           text: "Sorry, I don't know how to handle that question yet."
         }
+
+        Slack.chat.postMessage(params);
+        return;
           
       };
 
