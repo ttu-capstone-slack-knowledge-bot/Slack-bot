@@ -77,6 +77,30 @@ function handleEvent(data)
         Slack.chat.postMessage(params);
         return;
       }
+      else if (data.event.text.includes("how are you"))
+      {
+        const params = {
+          token: process.env.AUTH_TOKEN,
+          channel: data.event.channel,
+          text: "you know. Just livin' one day at a time."
+        };
+      }
+      else if (data.event.text.includes("color is the sky"))
+      {
+        const params = {
+          token: process.env.AUTH_TOKEN,
+          channel: data.event.channel,
+          text: "Probably blue. But I don't have eyes, so who knows."
+        };
+      }
+      else if (data.event.text.includes("meaning of life"))
+      {
+        const params = {
+          token: process.env.AUTH_TOKEN,
+          channel: data.event.channel,
+          text: "42. It's always 42."
+        };
+      }
     break;
   }
 
