@@ -1,5 +1,6 @@
 'use strict'
 
+
 const Slack = require('slack');
 
 module.exports.run = async (data) => {
@@ -105,6 +106,17 @@ function handleEvent(data)
           token: process.env.AUTH_TOKEN,
           channel: data.event.channel,
           text: "42. It's always 42."
+        };
+
+        Slack.chat.postMessage(params);
+        return;
+      }
+      else if (data.event.text.includes("favorite color"))
+      {
+        const params = {
+          token: process.env.AUTH_TOKEN,
+          channel: data.event.channel,
+          text: "blue"
         };
 
         Slack.chat.postMessage(params);
