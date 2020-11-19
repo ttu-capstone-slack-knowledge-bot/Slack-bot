@@ -115,7 +115,7 @@ function handleEvent(data)
         const params = {
           token: process.env.AUTH_TOKEN,
           channel: data.event.channel,
-          text: "blue"
+          text: "purple"
         };
 
         Slack.chat.postMessage(params);
