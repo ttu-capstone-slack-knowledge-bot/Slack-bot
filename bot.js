@@ -122,6 +122,17 @@ function handleEvent(data)
         Slack.chat.postMessage(params);
         return;
       }
+      else 
+      {
+        const params = {
+          token: process.env.AUTH_TOKEN,
+          channel: data.event.channel,
+          text: "Sorry, I don't know how to handle that question yet."
+        };
+
+        Slack.chat.postMessage(params);
+        return;
+      }
     break;
   }
 
