@@ -6,9 +6,9 @@ Sponsor: SAIC
 Group: Lab group 6
 Members:
    -  Ben Thompson
-   -  Alexander Clifford
    -  Alison Rust
    -
+   -  Hannah Lafever
    -
 
 Current Bot Features:
