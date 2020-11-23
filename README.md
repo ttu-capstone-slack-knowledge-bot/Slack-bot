@@ -6,7 +6,7 @@ Sponsor: SAIC
 Group: Lab group 6
 Members:
    -  Ben Thompson
-   -
+   -  Alison Rust
    -
    -
    -
