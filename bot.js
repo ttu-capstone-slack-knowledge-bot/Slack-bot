@@ -1,6 +1,8 @@
 'use strict'
 //test test
 const Slack = require('slack');
+const AWS = require('aws-sdk');
+const db = new AWS.DynamoDB.DocumentClient({region: "us-east-1"});
 
 module.exports.run = async (data) => {
   const dataObject = JSON.parse (data.body);
@@ -20,7 +22,17 @@ module.exports.run = async (data) => {
           break;
         case 'event_callback':
 
-          handleEvent(dataObject);
+          await handleEvent(dataObject).then(() => {
+            callback(null, {
+                statusCode: 201,
+                body: 'Yay',
+                headers: {
+                    'Access-Control-Allow-Origin' : '*'
+                }
+            });
+          }).catch((err) => {
+              console.error(err);
+          });
 
           response.body = {ok: true};
 
@@ -186,6 +198,30 @@ function handleEvent(data)
 
         Slack.chat.postMessage(params);
         return;
+      }
+      else if (data.event.text.includes("add"))
+      {
+        const table = "AcronymData";
+        const name = "AWS";
+        const desc = "Amazon Web Services";
+        
+        const params = {
+            TableName:table,
+            Item:{
+                "Name": name,
+                "Desc": title,
+            }
+        };
+
+        const params = {
+          token: process.env.AUTH_TOKEN,
+          channel: data.event.channel,
+          text: "Item has been added."
+        };
+
+        Slack.chat.postMessage(params);
+        
+        return docClient.put(params).promise();
       }
       else 
       {
