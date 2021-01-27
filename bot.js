@@ -121,98 +121,11 @@ async function handleEvent(data, extra)
         Slack.chat.postMessage(params);
         return;
       }
-      else if (data.event.text.includes("devops"))
-      {
-        const params = {
-          token: process.env.AUTH_TOKEN,
-          channel: data.event.channel,
-          text: "DevOps is a set of practices that combines software development (Dev) and IT operations (Ops). It aims to shorten the systems development life cycle and provide continuous delivery with high software quality. DevOps is complementary with Agile software development; several DevOps aspects came from Agile methodology."
-        };
-
-        Slack.chat.postMessage(params);
-        return;
-      }
-      else if (data.event.text.includes("+term"))
-      {
-        const params = {
-          token: process.env.AUTH_TOKEN,
-          channel: data.event.channel,
-          text: "seo has been successfully added"
-        };
-
-        Slack.chat.postMessage(params);
-        return;
-      }
-      else if (data.event.text.includes("seo"))
-      {
-        const params = {
-          token: process.env.AUTH_TOKEN,
-          channel: data.event.channel,
-          text: "search engine optimization"
-        };
-
-        Slack.chat.postMessage(params);
-        return;
-      }
-      else if (data.event.text.includes("ftp"))
-      {
-        const params = {
-          token: process.env.AUTH_TOKEN,
-          channel: data.event.channel,
-          text: "Sorry, I don't know that term yet."
-        };
-
-        Slack.chat.postMessage(params);
-        return;
-      }
-      else if (data.event.text.includes("-term"))
-      {
-        const params = {
-          token: process.env.AUTH_TOKEN,
-          channel: data.event.channel,
-          text: "http has been removed"
-        };
-
-        Slack.chat.postMessage(params);
-        return;
-      }
-      else if (data.event.text.includes("help"))
-      {
-        const params = {
-          token: process.env.AUTH_TOKEN,
-          channel: data.event.channel,
-          text: "Command formatting:\n@Cappy (term) ------------------------- asks the bot for the definiton\n@Cappy What is (term)? -------------- asks the bot for the defintion\n\n@Cappy +term (term)::(definition) --- adds a term to the bot's dictionary\n@Cappy -term (term) ------------------ removes a term from the bot's dictionary\n\nNote: \n() signify to insert a word/phrase into the formatting.\nFor example, to insert the term \"seo\" into the bot's dictionary, type @Cappy +term seo::search engine optimization"
-        };
-
-        Slack.chat.postMessage(params);
-        return;
-      }
       else if (data.event.text.includes("add"))
       {
         console.log("Entering the add...");
         await sendToDB();
-        // const table = "AcronymData";
-        // const name = "AWS";
-        // const desc = "Amazon Web Services";
         
-        // console.log("Creating the dbData...");
-
-        // const params = {
-        //     TableName: table,
-        //     Item:{
-        //       "Name": name,
-        //       "Desc": desc
-        //     }
-        // };
-
-        // console.log("Adding a new item...");
-        // db.put(params, function(err, data) {
-        //   if (err) {
-        //       console.error("Unable to add item. Error JSON:", JSON.stringify(err, null, 2));
-        //   } else {
-        //       console.log("Added item:", JSON.stringify(data, null, 2));
-        //   }
-        // });
         console.log("Done adding item");
 
         const msg = {
@@ -222,7 +135,6 @@ async function handleEvent(data, extra)
         };
 
         Slack.chat.postMessage(msg);
-        
       }
       else 
       {
