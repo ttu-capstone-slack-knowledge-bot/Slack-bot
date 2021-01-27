@@ -1,1 +1,1 @@
-{"statusCode":200,"body":"Oh no"}
+{"errorType":"SyntaxError","errorMessage":"Unexpected token u in JSON at position 0","trace":["SyntaxError: Unexpected token u in JSON at position 0","    at JSON.parse (<anonymous>)","    at Runtime.module.exports.run [as handler] (/var/task/bot.js:8:27)","    at Runtime.handleOnce (/var/runtime/Runtime.js:66:25)"]}

@@ -22,19 +22,7 @@ module.exports.run = async (data) => {
           break;
         case 'event_callback':
 
-          await handleEvent(dataObject).then(() => {
-            callback(null, {
-                statusCode: 201,
-                body: 'Yay',
-                headers: {
-                    'Access-Control-Allow-Origin' : '*'
-                }
-            });
-          }).catch((err) => {
-              console.error(err);
-          });
-
-          response.body = {ok: true};
+         await handleEvent(dataObject, data);
 
           break;
               
@@ -55,7 +43,7 @@ function verifyCall (data)
   return data.challenge;
 }
 
-function handleEvent(data)
+async function handleEvent(data, extra)
 {
   switch (data.event.type)
   {
@@ -201,27 +189,40 @@ function handleEvent(data)
       }
       else if (data.event.text.includes("add"))
       {
-        const table = "AcronymData";
-        const name = "AWS";
-        const desc = "Amazon Web Services";
+        console.log("Entering the add...");
+        await sendToDB();
+        // const table = "AcronymData";
+        // const name = "AWS";
+        // const desc = "Amazon Web Services";
         
-        const params = {
-            TableName:table,
-            Item:{
-                "Name": name,
-                "Desc": title,
-            }
-        };
+        // console.log("Creating the dbData...");
 
-        const params = {
+        // const params = {
+        //     TableName: table,
+        //     Item:{
+        //       "Name": name,
+        //       "Desc": desc
+        //     }
+        // };
+
+        // console.log("Adding a new item...");
+        // db.put(params, function(err, data) {
+        //   if (err) {
+        //       console.error("Unable to add item. Error JSON:", JSON.stringify(err, null, 2));
+        //   } else {
+        //       console.log("Added item:", JSON.stringify(data, null, 2));
+        //   }
+        // });
+        console.log("Done adding item");
+
+        const msg = {
           token: process.env.AUTH_TOKEN,
           channel: data.event.channel,
           text: "Item has been added."
         };
 
-        Slack.chat.postMessage(params);
+        Slack.chat.postMessage(msg);
         
-        return docClient.put(params).promise();
       }
       else 
       {
@@ -239,4 +240,30 @@ function handleEvent(data)
     break;
   }
 
+}
+
+async function sendToDB()
+{
+  const table = "AcronymData";
+  const name = "OOP";
+  const desc = "Object Oriented Programming";
+  
+  console.log("Creating the dbData...");
+
+  const params = {
+      TableName: table,
+      Item:{
+        "Name": name,
+        "Desc": desc
+      }
+  };
+
+  console.log("Adding a new item...");
+  let result = await db.put(params).promise();
+  if (result) {
+    console.log("THING HAS BEEN ADDED", result);
+  } else {
+    console.error("THERE WAS AN ERROR: ", result);
+  }
+  console.log("Done adding item");
 }
