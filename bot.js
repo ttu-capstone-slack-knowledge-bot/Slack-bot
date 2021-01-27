@@ -22,7 +22,7 @@ module.exports.run = async (data) => {
           break;
         case 'event_callback':
 
-         await handleEvent(dataObject, data);
+          await handleEvent(dataObject, data);
 
           break;
               
@@ -57,96 +57,47 @@ async function handleEvent(data, extra)
 
       if (data.event.text.includes("what does"))
       {
-        const params = {
-          token: process.env.AUTH_TOKEN,
-          channel: data.event.channel,
-          text: "Lol, heck if I know. Just google it."
-        };
-
-        Slack.chat.postMessage(params);
+        const text = "Lol, heck if I know. Just google it";
+        sendMessageToSlack(text, data, 0);
         return;
       }
       else if (data.event.text.includes("hello") || data.event.text.includes("hi"))
       {
-        const params = {
-          token: process.env.AUTH_TOKEN,
-          channel: data.event.channel,
-          text: "Sup, human."
-        };
-
-        Slack.chat.postMessage(params);
+        const text = "Sup, human.";
+        sendMessageToSlack(text, data, 0);
         return;
       }
       else if (data.event.text.includes("how are you"))
       {
-        const params = {
-          token: process.env.AUTH_TOKEN,
-          channel: data.event.channel,
-          text: "you know. Just livin' one day at a time."
-        };
-
-        Slack.chat.postMessage(params);
+        sendMessageToSlack("You know, just livin' one day at a time.");
         return;
       }
       else if (data.event.text.includes("color is the sky"))
       {
-        const params = {
-          token: process.env.AUTH_TOKEN,
-          channel: data.event.channel,
-          text: "Probably blue. But I don't have eyes, so who knows."
-        };
-
-        Slack.chat.postMessage(params);
+        sendMessageToSlack("Probably blue, but I dont have eyes, so who knows", data, 0);
         return;
       }
       else if (data.event.text.includes("meaning of life"))
       {
-        const params = {
-          token: process.env.AUTH_TOKEN,
-          channel: data.event.channel,
-          text: "42. It's always 42."
-        };
-
-        Slack.chat.postMessage(params);
+        sendMessageToSlack("42. It's always 42", data, 0);
         return;
       }
       else if (data.event.text.includes("favorite color"))
       {
-        const params = {
-          token: process.env.AUTH_TOKEN,
-          channel: data.event.channel,
-          text: "purple"
-        };
-
-        Slack.chat.postMessage(params);
+        sendMessageToSlack("Purple", data, 0);
         return;
       }
       else if (data.event.text.includes("add"))
       {
-        console.log("Entering the add...");
+        sendMessageToSlack("Adding item to the database...", data, 0);
         await sendToDB();
-        
-        console.log("Done adding item");
-
-        const msg = {
-          token: process.env.AUTH_TOKEN,
-          channel: data.event.channel,
-          text: "Item has been added."
-        };
-
-        Slack.chat.postMessage(msg);
+        sendMessageToSlack("The item has been added", data, 0);
+        return;
       }
       else 
       {
-        const params = {
-          token: process.env.AUTH_TOKEN,
-          channel: data.event.channel,
-          text: "Sorry, I don't know how to handle that question yet."
-        }
-
-        Slack.chat.postMessage(params);
+        sendMessageToSlack("Sorry, I don't know how to handle that request yet.", data, 0);
         return;
-          
       };
 
     break;
@@ -157,8 +108,8 @@ async function handleEvent(data, extra)
 async function sendToDB()
 {
   const table = "AcronymData";
-  const name = "OOP";
-  const desc = "Object Oriented Programming";
+  const name = "API";
+  const desc = "Aplication Program Interface";
   
   console.log("Creating the dbData...");
 
@@ -178,4 +129,34 @@ async function sendToDB()
     console.error("THERE WAS AN ERROR: ", result);
   }
   console.log("Done adding item");
+}
+
+// Function for sending messages to slack as the bot. This cleans up the previoius way by elimating the repative code.
+// ACCEPTS: text - the message that the bot will say
+//          data - the data sent to lambda to describe the event
+//          method - The kind of message the bot will be sending (0 = regular message, 1 = message reply, 2 = DM)
+function sendMessageToSlack(message, data, method)
+{
+  switch (method)
+  {
+    case 0:   // A regular message
+      const params = {
+        token: process.env.AUTH_TOKEN,
+        channel: data.event.channel,
+        text: message
+      }
+    
+      Slack.chat.postMessage(params);
+    break;
+
+    case 1:   // Reply to the message itself, starting a thread
+
+    break;
+
+    case 2:   // Send a DM to the invoking user
+
+    break;
+  }
+
+  
 }
