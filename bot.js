@@ -94,6 +94,18 @@ async function handleEvent(data, extra)
         sendMessageToSlack("The item has been added", data, 0);
         return;
       }
+      else if (data.event.text.includes("give"))
+      {
+        console.log("Got here");
+        var message = "";
+        sendMessageToSlack("Here's what is in the database: ", data, 0);
+        console.log("Sent message to slack");
+        message = await readFromDB();
+        console.log("Finished awaiting");
+        sendMessageToSlack(message, data, 0);
+        console.log("Sent final message");
+
+      }
       else 
       {
         sendMessageToSlack("Sorry, I don't know how to handle that request yet.", data, 0);
@@ -103,6 +115,32 @@ async function handleEvent(data, extra)
     break;
   }
 
+}
+
+async function readFromDB()
+{
+  var listOfTerms = "";
+
+  const params = {
+    TableName: "AcronymData",
+    Limit: 10
+  }
+
+  let result = await db.scan(params).promise();
+  if (result) {
+    console.log("Thing has been read");
+    
+    result.Items.forEach(function(item) {
+      console.log(item.Name);
+      var tempString = item.Name + ": " + item.Desc + "\n";
+      listOfTerms = listOfTerms.concat(tempString);
+    })
+    console.log(listOfTerms);
+    return listOfTerms;
+  } else {
+    console.error("There was an error");
+    return "Error";
+  }
 }
 
 async function sendToDB()
