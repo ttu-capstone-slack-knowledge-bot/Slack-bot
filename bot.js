@@ -75,7 +75,7 @@ async function handleEvent(data, extra)
         sendMessageToSlack(response, data, 0);
         return;
       }
-      else if (data.event.text.includes("hello") || data.event.text.includes("hi"))
+      else if (data.event.text.includes(" hello") || data.event.text.includes(" hi"))
       {
         const text = "Sup, human.";
         await sendMessageToSlack(text, data, 0);
@@ -101,14 +101,14 @@ async function handleEvent(data, extra)
         await sendMessageToSlack("Purple", data, 0);
         return;
       }
-      else if (data.event.text.includes("add"))
+      else if (data.event.text.includes(" add"))
       {
         await sendMessageToSlack("Adding item to the database...", data, 0);
         await sendToDB();
         await sendMessageToSlack("The item has been added", data, 0);
         return;
       }
-      else if (data.event.text.includes("give"))
+      else if (data.event.text.includes(" give"))
       {
         console.log("Got here");
         var message = "";
