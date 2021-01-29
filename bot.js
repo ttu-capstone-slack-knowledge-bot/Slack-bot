@@ -57,63 +57,107 @@ async function handleEvent(data, extra)
 
       if (data.event.text.includes("what does"))
       {
-        const text = "Lol, heck if I know. Just google it";
-        sendMessageToSlack(text, data, 0);
+        var startIndex = data.event.text.indexOf("what does") + 10;
+        var leftOvers = data.event.text.slice(startIndex);
+        var endIndex = leftOvers.indexOf(' ');
+        var wordToFind = leftOvers.slice(0, endIndex);
+
+        let desc = await queryDB(wordToFind);
+        let response = "";
+
+        if (desc == null) {
+          response = "Sorry, I don't know that yet."
+        } else {
+          response = wordToFind + " stands for: " + desc;
+        }
+
+        sendMessageToSlack(response, data, 0);
         return;
       }
       else if (data.event.text.includes("hello") || data.event.text.includes("hi"))
       {
         const text = "Sup, human.";
-        sendMessageToSlack(text, data, 0);
+        await sendMessageToSlack(text, data, 0);
         return;
       }
       else if (data.event.text.includes("how are you"))
       {
-        sendMessageToSlack("You know, just livin' one day at a time.");
+        await sendMessageToSlack("You know, just livin' one day at a time.", data, 0);
         return;
       }
       else if (data.event.text.includes("color is the sky"))
       {
-        sendMessageToSlack("Probably blue, but I dont have eyes, so who knows", data, 0);
+        await sendMessageToSlack("Probably blue, but I dont have eyes, so who knows", data, 0);
         return;
       }
       else if (data.event.text.includes("meaning of life"))
       {
-        sendMessageToSlack("42. It's always 42", data, 0);
+        await sendMessageToSlack("42. It's always 42", data, 0);
         return;
       }
       else if (data.event.text.includes("favorite color"))
       {
-        sendMessageToSlack("Purple", data, 0);
+        await sendMessageToSlack("Purple", data, 0);
         return;
       }
       else if (data.event.text.includes("add"))
       {
-        sendMessageToSlack("Adding item to the database...", data, 0);
+        await sendMessageToSlack("Adding item to the database...", data, 0);
         await sendToDB();
-        sendMessageToSlack("The item has been added", data, 0);
+        await sendMessageToSlack("The item has been added", data, 0);
         return;
       }
       else if (data.event.text.includes("give"))
       {
         console.log("Got here");
         var message = "";
-        sendMessageToSlack("Here's what is in the database: ", data, 0);
+        await sendMessageToSlack("Here's what is in the database: ", data, 0);
         console.log("Sent message to slack");
         message = await readFromDB();
         console.log("Finished awaiting");
-        sendMessageToSlack(message, data, 0);
+        await sendMessageToSlack(message, data, 0);
         console.log("Sent final message");
 
       }
       else 
       {
-        sendMessageToSlack("Sorry, I don't know how to handle that request yet.", data, 0);
+        await sendMessageToSlack("Sorry, I don't know how to handle that request yet.", data, 0);
         return;
       };
 
     break;
   }
+
+}
+
+async function queryDB(term)
+{
+  var response = "";
+
+  let params = {
+    TableName: "AcronymData",
+    Key: {
+      Name: term
+    }
+  };
+
+  try{
+    console.log("About to call the thing");
+    let result = await db.get(params).promise();
+    if (JSON.stringify(result) != "{}") {
+      console.log(JSON.stringify(result))
+      response = result.Item.Desc;
+      console.log(response);
+    } else {
+      response = null;
+      console.error("SOMETHING WENT WRONG");
+    }
+  }
+  catch (error) {
+    console.error(error);
+  }
+
+  return response;
 
 }
 
@@ -173,7 +217,7 @@ async function sendToDB()
 // ACCEPTS: text - the message that the bot will say
 //          data - the data sent to lambda to describe the event
 //          method - The kind of message the bot will be sending (0 = regular message, 1 = message reply, 2 = DM)
-function sendMessageToSlack(message, data, method)
+async function sendMessageToSlack(message, data, method)
 {
   switch (method)
   {
@@ -184,7 +228,14 @@ function sendMessageToSlack(message, data, method)
         text: message
       }
     
-      Slack.chat.postMessage(params);
+      try {
+        console.log("sending message");
+        let val = await Slack.chat.postMessage(params);
+        console.log("Message sent");
+      } catch (error) {
+        console.error("Whoops: " + error);
+      }
+
     break;
 
     case 1:   // Reply to the message itself, starting a thread
