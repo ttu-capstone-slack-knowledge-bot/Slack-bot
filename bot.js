@@ -1,6 +1,7 @@
 'use strict'
 //test test
-const Slack = require('slack');
+const { WebClient } = require('@slack/web-api');
+const Bot = new WebClient(process.env.AUTH_TOKEN);
 const AWS = require('aws-sdk');
 const db = new AWS.DynamoDB.DocumentClient({region: "us-east-1"});
 
@@ -223,14 +224,13 @@ async function sendMessageToSlack(message, data, method)
   {
     case 0:   // A regular message
       const params = {
-        token: process.env.AUTH_TOKEN,
         channel: data.event.channel,
         text: message
       }
     
       try {
         console.log("sending message");
-        let val = await Slack.chat.postMessage(params);
+        let val = await Bot.chat.postMessage(params);
         console.log("Message sent");
       } catch (error) {
         console.error("Whoops: " + error);
