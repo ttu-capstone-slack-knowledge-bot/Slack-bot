@@ -72,7 +72,7 @@ async function handleEvent(data, extra)
           response = wordToFind + " stands for: " + desc;
         }
 
-        sendMessageToSlack(response, data, 0);
+        sendMessageToSlack(response, data, 1);
         return;
       }
       else if (data.event.text.includes(" hello") || data.event.text.includes(" hi"))
@@ -145,11 +145,15 @@ async function queryDB(term)
   try{
     console.log("About to call the thing");
     let result = await db.get(params).promise();
-    if (JSON.stringify(result) != "{}") {
+
+    if (JSON.stringify(result) != "{}") 
+    {
       console.log(JSON.stringify(result))
       response = result.Item.Desc;
       console.log(response);
-    } else {
+    } 
+    else 
+    {
       response = null;
       console.error("SOMETHING WENT WRONG");
     }
@@ -220,25 +224,42 @@ async function sendToDB()
 //          method - The kind of message the bot will be sending (0 = regular message, 1 = message reply, 2 = DM)
 async function sendMessageToSlack(message, data, method)
 {
+  let params = {};
   switch (method)
   {
     case 0:   // A regular message
-      const params = {
+      params = {
         channel: data.event.channel,
         text: message
       }
     
-      try {
-        console.log("sending message");
+      try 
+      {  
         let val = await Bot.chat.postMessage(params);
-        console.log("Message sent");
-      } catch (error) {
-        console.error("Whoops: " + error);
+        console.log(val);
+      } 
+      catch (error) 
+      {
+        console.error("Error in 0: ", error);
       }
 
     break;
 
     case 1:   // Reply to the message itself, starting a thread
+      params = {
+        channel: data.event.channel,
+        text: message,
+        thread_ts: data.event.ts
+      }
+
+      try {
+        let val = await Bot.chat.postMessage(params);
+        console.log(val);
+      }
+      catch (error)
+      {
+        console.error("Error in 1: ", error)
+      }
 
     break;
 
