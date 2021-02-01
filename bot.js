@@ -72,7 +72,7 @@ async function handleEvent(data, extra)
           response = wordToFind + " stands for: " + desc;
         }
 
-        sendMessageToSlack(response, data, 1);
+        await sendMessageToSlack(response, data, 1);
         return;
       }
       else if (data.event.text.includes(" hello") || data.event.text.includes(" hi"))
