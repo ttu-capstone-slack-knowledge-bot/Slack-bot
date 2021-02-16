@@ -4,6 +4,7 @@ const { WebClient } = require('@slack/web-api');
 const Bot = new WebClient(process.env.AUTH_TOKEN);
 const AWS = require('aws-sdk');
 const db = new AWS.DynamoDB.DocumentClient({region: "us-east-1"});
+const termTable = "AcronymData";
 
 module.exports.run = async (data) => {
   const dataObject = JSON.parse (data.body);
@@ -62,14 +63,19 @@ async function handleEvent(data)
         let leftOvers = data.event.text.slice(startIndex);
         let endIndex = leftOvers.indexOf(' ');
         let wordToFind = leftOvers.slice(0, endIndex);
-
-        let desc = await queryDB(wordToFind);
         let response = "";
+        let desc;
+
+        // desc will get the result from the function. Either the term, null, or -1.
+        desc = await getDesc(wordToFind);
+       
 
         if (desc == null) {
-          response = "Sorry, I don't know that yet."
+          response = "Sorry, I don't know that yet.";
+        } else if (desc == -1) {
+          response = "Sorry, there was an error.";
         } else {
-          response = wordToFind + " stands for: " + desc;
+          response = wordToFind + " means " + desc;
         }
 
         await sendMessageToSlack(response, data, 1);
@@ -103,7 +109,7 @@ async function handleEvent(data)
       }
       else if (data.event.text.includes(" add"))
       {
-        console.log("testing2");
+
         try
         {
           let startIndex = data.event.text.indexOf("add") + 4;
@@ -111,17 +117,17 @@ async function handleEvent(data)
           let splitIndex = fullString.indexOf(':');
           let newTerm = fullString.slice(0, splitIndex);
           let newDef = fullString.slice(splitIndex+2, data.event.text.length);
+
+          await sendMessageToSlack("Adding item to the database...", data, 1);
+          await sendToDB(newTerm, newDef);
+          await sendMessageToSlack("The item has been added", data, 1);
   
         }
         catch (error)
         {
           console.error(error);
         }
-        console.log("Testing");
 
-        await sendMessageToSlack("Adding item to the database...", data, 1);
-        await sendToDB(newTerm, newDef);
-        await sendMessageToSlack("The item has been added", data, 1);
         return;
       }
       else if (data.event.text.includes(" give")) 
@@ -151,6 +157,45 @@ async function handleEvent(data)
 
 }
 
+// Creating and using this instead of queryDB to make it clear that all this does is get the desc of a term, and nothing else.
+// Accepts - the term to be looked for
+// Returns - either the term, null if not found, or -1 if there was an error thrown.
+async function getDesc(term)  // Ben
+{
+  let response;
+  const params = {
+    TableName: termTable,
+    Key: {
+      Name: term
+    },
+    AttributesToGet: [
+      "Desc"
+    ]
+  };
+
+  // Try-catch block to make sure database function works correctly.
+  try {
+    let result = await db.get(params).promise();
+
+    // Check to see if the result is just an 'empty set', which means we got nothing back
+    if (JSON.stringify(result) != "{}")
+    {
+      // Found the term
+      response = result.Item.Desc;
+    } else {
+      // Found nothing
+      response = null;
+    }
+  } catch (error) {
+    // There was an error
+    console.error("There was an error: ", error);
+    response = -1;
+  }
+
+  return response;
+}
+
+// 
 async function queryDB(term)
 {
   var response = "";
