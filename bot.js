@@ -44,7 +44,7 @@ function verifyCall (data)
   return data.challenge;
 }
 
-async function handleEvent(data, extra)
+async function handleEvent(data)
 {
   switch (data.event.type)
   {
@@ -58,10 +58,10 @@ async function handleEvent(data, extra)
 
       if (data.event.text.includes("what does"))
       {
-        var startIndex = data.event.text.indexOf("what does") + 10;
-        var leftOvers = data.event.text.slice(startIndex);
-        var endIndex = leftOvers.indexOf(' ');
-        var wordToFind = leftOvers.slice(0, endIndex);
+        let startIndex = data.event.text.indexOf("what does") + 10;
+        let leftOvers = data.event.text.slice(startIndex);
+        let endIndex = leftOvers.indexOf(' ');
+        let wordToFind = leftOvers.slice(0, endIndex);
 
         let desc = await queryDB(wordToFind);
         let response = "";
@@ -103,22 +103,42 @@ async function handleEvent(data, extra)
       }
       else if (data.event.text.includes(" add"))
       {
-        await sendMessageToSlack("Adding item to the database...", data, 0);
-        await sendToDB();
-        await sendMessageToSlack("The item has been added", data, 0);
+        console.log("testing2");
+        try
+        {
+          let startIndex = data.event.text.indexOf("add") + 4;
+          let fullString = data.event.text.slice(startIndex);
+          let splitIndex = fullString.indexOf(':');
+          let newTerm = fullString.slice(0, splitIndex);
+          let newDef = fullString.slice(splitIndex+2, data.event.text.length);
+  
+        }
+        catch (error)
+        {
+          console.error(error);
+        }
+        console.log("Testing");
+
+        await sendMessageToSlack("Adding item to the database...", data, 1);
+        await sendToDB(newTerm, newDef);
+        await sendMessageToSlack("The item has been added", data, 1);
         return;
       }
-      else if (data.event.text.includes(" give"))
+      else if (data.event.text.includes(" give")) 
       {
-        console.log("Got here");
-        var message = "";
         await sendMessageToSlack("Here's what is in the database: ", data, 0);
-        console.log("Sent message to slack");
-        message = await readFromDB();
-        console.log("Finished awaiting");
+        let message = await readFromDB();
         await sendMessageToSlack(message, data, 0);
-        console.log("Sent final message");
-
+      }
+      else if (data.event.text.includes(" help") || data.event.text.includes(" how do you work")) // Potential base for the help command to be based off of?
+      {
+        let help = "Hello! I'm Cappy! Here's how you can let me help you!\n" +
+          "In order to get my attention you need to @ me, by saying @Cappy followed by your question. For example:\n" + 
+          "Ask me \"what does xxx mean?\" and I'll tell you if I know it!\n" +
+          "Ask me to \"give me the whole database\" and I'll tell you everything I know!\n" +
+          "Tell me \"learn xxx\" and then I'll ask you what it means. Once you tell me, I'll never forget it!\n" +
+          "For a more detailed list of all I can do, reply to this message with \"DM me\" and I'll give you a full list of all my abilities."
+        await sendMessageToSlack(help, data, 0);
       }
       else 
       {
@@ -168,7 +188,7 @@ async function queryDB(term)
 
 async function readFromDB()
 {
-  var listOfTerms = "";
+  let listOfTerms = "";
 
   const params = {
     TableName: "AcronymData",
@@ -192,11 +212,9 @@ async function readFromDB()
   }
 }
 
-async function sendToDB()
+async function sendToDB(name, desc)
 {
   const table = "AcronymData";
-  const name = "API";
-  const desc = "Aplication Program Interface";
   
   console.log("Creating the dbData...");
 
@@ -219,6 +237,7 @@ async function sendToDB()
 }
 
 // Function for sending messages to slack as the bot. This cleans up the previoius way by elimating the repative code.
+//  Will probably need to be changed a couple times as we figure stuff out. But I figured it was worth making
 // ACCEPTS: text - the message that the bot will say
 //          data - the data sent to lambda to describe the event
 //          method - The kind of message the bot will be sending (0 = regular message, 1 = message reply, 2 = DM)
@@ -246,11 +265,20 @@ async function sendMessageToSlack(message, data, method)
     break;
 
     case 1:   // Reply to the message itself, starting a thread
+
+    // This checks to see if the message is a parent message, or a thread reply itself.
+    let timeStamp;
+    if (data.event.hasOwnProperty('thread_ts')) {
+      timeStamp = data.event.thread_ts;
+    } else {
+      timeStamp = data.event.ts;
+    }
+
       params = {
         channel: data.event.channel,
         text: message,
-        thread_ts: data.event.ts
-      }
+        thread_ts: timeStamp
+      };
 
       try {
         let val = await Bot.chat.postMessage(params);
@@ -264,6 +292,20 @@ async function sendMessageToSlack(message, data, method)
     break;
 
     case 2:   // Send a DM to the invoking user
+
+    params = {
+      channel: data.event.user,
+      text: message
+    };
+
+    try {
+      let val = await Bot.chat.postMessage(params);
+      console.log(val);
+    }
+    catch (error)
+    {
+      console.error("Error in 1: ", error)
+    }
 
     break;
   }
