@@ -47,15 +47,29 @@ function verifyCall (data)
 
 async function handleEvent(data)
 {
-  switch (data.event.type)
+  // Test to see if the message is an @ mention, a DM, or just a regular message it should ignore
+  let messageType;
+  if (data.event.type === 'app_mention') {
+    messageType = 'app_mention';
+  } else if (data.event.type === 'message') {
+    if (data.event.channel == data.event.user) {
+      messageType = 'DM';
+    } else {
+      messageType = 'reg_message';
+    }
+  }
+
+
+  switch (messageType)
   {
     // Do anything in here if you want the bot to react to messages in general
-    case 'message':
+    case 'reg_message':
       
       break;
 
-    // Bot will react to @ mentions
+    // Bot will react to @ mentions, both in general chat channels and DM's
     case 'app_mention':
+    case 'DM':
 
       if (data.event.text.includes("what does"))
       {
