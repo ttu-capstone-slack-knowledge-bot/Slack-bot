@@ -47,14 +47,25 @@ function verifyCall (data)
 
 async function handleEvent(data)
 {
+  // If the message being recieved was sent by a bot, ignore it
+  // Might try to find a way to identify that it was sent by this specific bot later, but for now this works
+  if (data.event.hasOwnProperty('bot_profile'))
+    return;
+
   // Test to see if the message is an @ mention, a DM, or just a regular message it should ignore
   let messageType;
-  if (data.event.type === 'app_mention') {
+  if (data.event.type === 'app_mention') 
+  {
     messageType = 'app_mention';
-  } else if (data.event.type === 'message') {
-    if (data.event.channel == data.event.user) {
+  } 
+  else if (data.event.type === 'message') 
+  {
+    if (data.event.channel_type == 'im') 
+    {
       messageType = 'DM';
-    } else {
+    } 
+    else 
+    {
       messageType = 'reg_message';
     }
   }
@@ -71,7 +82,7 @@ async function handleEvent(data)
     case 'app_mention':
     case 'DM':
 
-      if (data.event.text.includes("what does"))
+      if (data.event.text.toLowerCase().includes("what does"))
       {
         let startIndex = data.event.text.indexOf("what does") + 10;
         let leftOvers = data.event.text.slice(startIndex);
