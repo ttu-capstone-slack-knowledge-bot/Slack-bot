@@ -118,8 +118,49 @@ async function handleEvent(data, extra)
         console.log("Finished awaiting");
         await sendMessageToSlack(message, data, 0);
         console.log("Sent final message");
-
+		return;
       }
+	  else if (data.event.text.includes("wake up"))
+	  {
+		  await sendMessageToSlack("I'm awake!!!", data, 0);
+		  return;
+	  }
+	  
+	  else if (data.event.text.includes("edit"))
+      {
+		//var wordtoEdit = await sendMessageToSlack("What would you like me to edit?",data,1);
+		
+        //ar startIndex = data.event.text.indexOf("edit") + 10;
+        //var leftOvers = data.event.text.slice(startIndex);
+        //var endIndex = leftOvers.indexOf(' ');
+        //var wordtoEdit = leftOvers.slice(0, endIndex);
+
+        //let desc = await queryDB(wordtoEdit);
+        //let response = "";
+
+        //if (desc == null) {
+         //response = "beep"
+        //} else {
+		await sendMessageToSlack("What would you like me to edit?",data, 1);
+		//response = ("What would you like me to edit?",data,1);
+		let wordToEdit = data.event.text(); 
+		//let x = Boolean(queryDB(wordToEdit));
+		let y = queryDB(wordToEdit);
+		if (Boolean(y) == true){
+			response = "Found that term!";
+		} else { response = "Term not found *sad beep*."}
+		
+		await sendMessageToSlack(response, data, 1);
+		
+		await sendMessageToSlack("Please enter the edited word.", data, 1);
+		let newWordEdit = data.event.text();
+		
+		let newReply = ("TEST: Added " + newWordEdit + "to the database!");
+		await sendMessageToSlack(newReply,data,1);
+	
+        return;
+      }
+	  
       else 
       {
         await sendMessageToSlack("Sorry, I don't know how to handle that request yet.", data, 0);
@@ -218,9 +259,9 @@ async function sendToDB()
   console.log("Done adding item");
 }
 
-// Function for sending messages to slack as the bot. This cleans up the previoius way by elimating the repative code.
+// Function for sending messages to slack as the bot. This cleans up the previous way by eliminating the repetitive code.
 // ACCEPTS: text - the message that the bot will say
-//          data - the data sent to lambda to describe the event
+//          data - the data sent to lambda to describe the  event
 //          method - The kind of message the bot will be sending (0 = regular message, 1 = message reply, 2 = DM)
 async function sendMessageToSlack(message, data, method)
 {
@@ -270,3 +311,5 @@ async function sendMessageToSlack(message, data, method)
 
   
 }
+
+
