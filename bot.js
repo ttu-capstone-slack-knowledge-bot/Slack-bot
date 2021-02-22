@@ -56,13 +56,16 @@ async function handleEvent(data)
 
     // Bot will react to @ mentions
     case 'app_mention':
+      let re = /(what does) (?<term>[a-zA-Z ]{1,}) (mean|stand for)/i;
 
-      if (data.event.text.includes("what does"))
+      if (data.event.text.search(re) != -1)
       {
-        let startIndex = data.event.text.indexOf("what does") + 10;
-        let leftOvers = data.event.text.slice(startIndex);
-        let endIndex = leftOvers.indexOf(' ');
-        let wordToFind = leftOvers.slice(0, endIndex);
+        // let startIndex = data.event.text.indexOf("what does") + 10;
+        // let leftOvers = data.event.text.slice(startIndex);
+        // let endIndex = leftOvers.indexOf(' ');
+        // let wordToFind = leftOvers.slice(0, endIndex);
+        const matchArray = data.event.text.match(re);
+        let wordToFind = matchArray.groups.term;
         let response = "";
         let desc;
 
@@ -73,7 +76,7 @@ async function handleEvent(data)
         if (desc == null) {
           response = "Sorry, I don't know that yet.";
         } else if (desc == -1) {
-          response = "Sorry, there was an error.";
+          response = wordToFind +  "Sorry, there was an error.";
         } else {
           response = wordToFind + " means " + desc;
         }
