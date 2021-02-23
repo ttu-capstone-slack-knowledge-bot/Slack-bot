@@ -56,16 +56,14 @@ async function handleEvent(data)
 
     // Bot will react to @ mentions
     case 'app_mention':
-      let re = /(what does) (?<term>[a-zA-Z ]{1,}) (mean|stand for)/i;
+      // Regular expressions to decide if a string matches the pattern needed or not.
+      let askForTermRE = /(what does) (?<term>[a-zA-Z ]{1,}) (mean|stand for)/i;  // This will match with anything in the form of "what does ___ mean/stand for"
 
-      if (data.event.text.search(re) != -1)
+      if (data.event.text.search(askForTermRE) != -1)
       {
-        // let startIndex = data.event.text.indexOf("what does") + 10;
-        // let leftOvers = data.event.text.slice(startIndex);
-        // let endIndex = leftOvers.indexOf(' ');
-        // let wordToFind = leftOvers.slice(0, endIndex);
-        const matchArray = data.event.text.match(re);
-        let wordToFind = matchArray.groups.term;
+        // matchArray will be an array of matching strings to the Regex, and the subgroups. We want the subgroup "term".
+        const matchArray = data.event.text.match(askForTermRE);
+        let wordToFind = matchArray.groups.term;  // This gets the term out of the array, since it is a named group within the Regex.
         let response = "";
         let desc;
 
