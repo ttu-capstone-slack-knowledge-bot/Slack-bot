@@ -72,8 +72,14 @@ async function handleEvent(data)
        
 
         if (desc == null) {
+          // Term doesn't exist yet
           response = "Sorry, I don't know that yet.";
+
+          // This might be a good spot for asking if they'd like to add the term to the database.
+          
+
         } else if (desc == -1) {
+          // Database responded with an error. 
           response = wordToFind +  "Sorry, there was an error.";
         } else {
           response = wordToFind + " means " + desc;
