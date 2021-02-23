@@ -81,24 +81,30 @@ async function handleEvent(data)
     // Bot will react to @ mentions, both in general chat channels and DM's
     case 'app_mention':
     case 'DM':
+      // Regular expressions to decide if a string matches the pattern needed or not.
+      let askForTermRE = /(what does) (?<term>[a-zA-Z ]{1,}) (mean|stand for)/i;  // This will match with anything in the form of "what does ___ mean/stand for"
 
-      if (data.event.text.toLowerCase().includes("what does"))
+      if (data.event.text.search(askForTermRE) != -1)
       {
-        let startIndex = data.event.text.indexOf("what does") + 10;
-        let leftOvers = data.event.text.slice(startIndex);
-        let endIndex = leftOvers.indexOf(' ');
-        let wordToFind = leftOvers.slice(0, endIndex);
+        // matchArray will be an array of matching strings to the Regex, and the subgroups. We want the subgroup "term".
+        const matchArray = data.event.text.match(askForTermRE);
+        let wordToFind = matchArray.groups.term;  // This gets the term out of the array, since it is a named group within the Regex.
         let response = "";
         let desc;
 
         // desc will get the result from the function. Either the term, null, or -1.
         desc = await getDesc(wordToFind);
        
-
         if (desc == null) {
+          // Term doesn't exist yet
           response = "Sorry, I don't know that yet.";
+
+          // This might be a good spot for asking if they'd like to add the term to the database.
+          
+
         } else if (desc == -1) {
-          response = "Sorry, there was an error.";
+          // Database responded with an error. 
+          response = wordToFind +  "Sorry, there was an error.";
         } else {
           response = wordToFind + " means " + desc;
         }
