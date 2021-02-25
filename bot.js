@@ -69,6 +69,10 @@ async function handleEvent(data)
       messageType = 'reg_message';
     }
   }
+  else if (data.event.type === "app_home_opened")
+  {
+    messageType = "home_opened";
+  }
 
 
   switch (messageType)
@@ -184,7 +188,77 @@ async function handleEvent(data)
       };
 
     break;
+    case "home_opened":
+      await displayHome(data.event.user);
+    break;
   }
+
+}
+
+// Used for pushing data to the home tab of the bot. This could be a good spot for putting the help message, and other commonly needed things
+async function displayHome(user)
+{
+  const params = {
+    user_id: user,
+    view: await updateHomeView(user)
+  };
+
+  const result = await Bot.views.publish(params)
+}
+
+async function updateHomeView()
+{
+  let homeBlocks = [
+      {
+        "type": "header",
+        "text": {
+          "type": "plain_text",
+          "text": "Hi, I'm Cappy!",
+          "emoji": true
+        }
+      },
+      {
+        "type": "section",
+        "text": {
+          "type": "plain_text",
+          "text": "\tI have been added to your workspace, and it's my job to help you! I can fetch definitions for simple terms and acronyms if I know them, or you can tell me what certain acronyms mean to help expand my knowledge base!\n\tBe sure to check back here often, as my feature set is constantly expanding!",
+          "emoji": true
+        }
+      },
+      {
+        "type": "divider"
+      },
+      {
+        "type": "header",
+        "text": {
+          "type": "plain_text",
+          "text": "Cappy Bot Help Center",
+          "emoji": true
+        }
+      },
+      {
+        "type": "section",
+        "text": {
+          "type": "plain_text",
+          "text": "Need a reminder of how to call me and get my help? Then look no further! Here's a list of the things you can ask me that I can help with!",
+          "emoji": true
+        }
+      },
+      {
+        "type": "section",
+        "text": {
+          "type": "mrkdwn",
+          "text": "• Need to know what a term means? Send me a message in the form of *\"@Cappy what does __ mean\"*, and if I know it I'll reply to your message with the definition!\n\n• Want to tell me something and help me learn! Then you can send me a message in the form of *\"@Cappy add ILC : I love Cappy!\"*, and I'll make sure to remember that for the next time somebody asks.\n\n• Want a simple help message without leaving the channel you're currently in? Then you can just message me with *\"@Cappy help\"* and I'll send you a short version of this message!"
+        }
+      }
+  ];
+
+  let view = {
+    type: 'home',
+    blocks: homeBlocks
+  };
+
+  return view;
 
 }
 
