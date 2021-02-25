@@ -206,7 +206,7 @@ async function displayHome(user)
   const result = await Bot.views.publish(params)
 }
 
-async function updateHomeView()
+async function updateHomeView(user)
 {
   let homeBlocks = [
       {
