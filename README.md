@@ -15,8 +15,8 @@ Members:
 Current Bot Features:
 
 - Able to respond to direct @bot messages if specific words are in the message.
--
--
+- Able to send a brief help message if the user sends "@bot_name help"
+- Able to tell the user a definition of a term if the user sends a message in the form of "@bot_name what does ___ mean?"
 
 Programming Guidelines/Practices:
 
