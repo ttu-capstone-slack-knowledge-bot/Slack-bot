@@ -86,7 +86,8 @@ async function handleEvent(data)
     case 'app_mention':
     case 'DM':
       // Regular expressions to decide if a string matches the pattern needed or not.
-      let askForTermRE = /(what does) (?<term>[a-zA-Z ]{1,}) (mean|stand for)/i;  // This will match with anything in the form of "what does ___ mean/stand for"
+      let askForTermRE = /(what does) (?<term>[a-zA-Z ]{1,}) (mean|stand for)/i;  // Will match anything in the form of "what does ___ mean/stand for"
+      let tagTermRE = /(tag) (?<term>[a-zA-Z ]{1,}) (with) (?<tag>[a-zA-Z]{1,})/i; // Will match anything in form of "Tag __ with ___."
 
       if (data.event.text.search(askForTermRE) != -1)
       {
@@ -115,6 +116,33 @@ async function handleEvent(data)
 
         await sendMessageToSlack(response, data, 1);
         return;
+      }
+      else if (data.event.text.search(tagTermRE) != -1)
+      {
+        const matchArray = data.event.text.match(tagTermRE); // will return an array with the groups from the regEx
+        let wordToFind = matchArray.groups.term;  // This will hold the term the user wishes to tag
+        let tagToApply = matchArray.groups.tag;   // This will hold the tag the user wishes to apply
+        let response = "";
+
+        let termExists = await getDesc(wordToFind);
+        if (termExists == null) // Term doesn't exist
+        {
+          response = "Sorry, that term doesn't exist yet, so I can't tag it.";
+        }
+        else if (termExists == -1) // There was some sort of database error
+        {
+          response = "Sorry, there was an eror trying to retrieve the term.";
+        }
+        else // Term exists, so apply the tag.
+        {
+          // First, find out if this term already has tags:
+            // If it does, add check if this tag is already applied
+            // If it is, let the user know this tag is already applied to this term
+            // If it isn't, apply the tag and let the user know
+
+          // If the term hasn't been tagged yet:
+            // Tag it with the term and let the user know it has been tagged
+        }
       }
       else if (data.event.text.includes(" hello") || data.event.text.includes(" hi"))
       {
@@ -192,10 +220,34 @@ async function handleEvent(data)
       await displayHome(data.event.user);
     break;
   }
+}
 
+// Checks to see if a term has any tags, and returns a list of tags if it does.
+// Ben
+async function getTagsForTerm(term)
+{
+  // Get everything about the term. 
+  // Check to see if it has any tags
+  // If it does:
+    // Put them in a list
+    // Return the list
+  // If it doesn't:
+    // Return null
+}
+
+// Applys a list of tags to a given term
+// Ben
+async function applyTagToTerm(term, tagList)
+{
+  // Push the taglist to the database for the given term
+  // If no error:
+    // return 1;
+  // If error:
+    // return 0;
 }
 
 // Used for pushing data to the home tab of the bot. This could be a good spot for putting the help message, and other commonly needed things
+// Ben
 async function displayHome(user)
 {
   const params = {
@@ -206,6 +258,8 @@ async function displayHome(user)
   const result = await Bot.views.publish(params)
 }
 
+// A function that contains the blocks used for the home tab. If the actual contents of the home tab need to be edited, then use this function.
+// Ben
 async function updateHomeView(user)
 {
   let homeBlocks = [
