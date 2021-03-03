@@ -86,10 +86,10 @@ async function handleEvent(data)
     case 'app_mention':
     case 'DM':
       // Regular expressions to decide if a string matches the pattern needed or not.
-      let askForTermRE = /(what does) (?<term>[a-zA-Z ]{1,}) (mean|stand for)/i;  // Will match anything in the form of "what does ___ mean/stand for"
-      let tagTermRE = /(tag) (?<term>[a-zA-Z ]{1,}) (with) (?<tag>[a-zA-Z]{1,})/i; // Will match anything in form of "Tag __ with ___."
+      let askForTermRE = /(what does) (?<term>[a-zA-Z0-9 ]{1,}) (mean|stand for)/i;  // Will match anything in the form of "what does ___ mean/stand for"
+      let tagTermRE = /(tag) (?<term>[a-zA-Z0-9 ]{1,}) (with) (?<tag>[a-zA-Z]{1,})/i; // Will match anything in form of "Tag __ with ___."
 
-      if (data.event.text.search(askForTermRE) != -1)
+      if (data.event.text.search(askForTermRE) != -1) // What does __ mean?
       {
         // matchArray will be an array of matching strings to the Regex, and the subgroups. We want the subgroup "term".
         const matchArray = data.event.text.match(askForTermRE);
@@ -117,32 +117,78 @@ async function handleEvent(data)
         await sendMessageToSlack(response, data, 1);
         return;
       }
-      else if (data.event.text.search(tagTermRE) != -1)
+      else if (data.event.text.search(tagTermRE) != -1) // Tag __ with ___
       {
-        const matchArray = data.event.text.match(tagTermRE); // will return an array with the groups from the regEx
-        let wordToFind = matchArray.groups.term;  // This will hold the term the user wishes to tag
-        let tagToApply = matchArray.groups.tag;   // This will hold the tag the user wishes to apply
-        let response = "";
+        console.log("We're adding a tag");
 
-        let termExists = await getDesc(wordToFind);
-        if (termExists == null) // Term doesn't exist
-        {
-          response = "Sorry, that term doesn't exist yet, so I can't tag it.";
-        }
-        else if (termExists == -1) // There was some sort of database error
-        {
-          response = "Sorry, there was an eror trying to retrieve the term.";
-        }
-        else // Term exists, so apply the tag.
-        {
-          // First, find out if this term already has tags:
-            // If it does, add check if this tag is already applied
-            // If it is, let the user know this tag is already applied to this term
-            // If it isn't, apply the tag and let the user know
+        try{
+          const matchArray = data.event.text.match(tagTermRE); // will return an array with the groups from the regEx
+          let wordToTag = matchArray.groups.term;  // This will hold the term the user wishes to tag
+          let tagToApply = matchArray.groups.tag;   // This will hold the tag the user wishes to apply
+          let response = "";
+          let tagExists = false;
+  
+          let termExists = await getDesc(wordToTag);
+          if (termExists == null) // Term doesn't exist
+          {
+            response = "Sorry, that term doesn't exist yet, so I can't tag it.";
+          }
+          else if (termExists == -1) // There was some sort of database error
+          {
+            response = "Sorry, there was an eror trying to retrieve the term.";
+          }
+          else // Term exists, so apply the tag.
+          {
+            // First, find out if this term already has tags or not:
+            let tagList = await getTagsForTerm(wordToTag);
 
-          // If the term hasn't been tagged yet:
-            // Tag it with the term and let the user know it has been tagged
+            if (tagList === null) // Term doesn't the tag attribute yet
+            {
+              tagList = [tagToApply];
+              console.log(tagList);
+            }
+            else  // Term has tag attribute, so just push the new tag onto the array.
+            {
+              // Check to make sure the tag doesn't already exist
+              tagList.forEach((item) => {
+                if (item.toLowerCase() === tagToApply.toLowerCase())
+                {
+                  console.log("Tag already exists on item");
+                  tagExists = true;
+                }
+              });
+
+              if (tagExists) // Given tag was already in the list of tags for the term
+              {
+                // Tell the user that the term they want to tag already has that tag.
+                response = wordToTag + " has already been tagged with " + tagToApply + ".\n" + "Currently, it has the tags: ";
+
+                // List out the tags so that they know what the currents tags are
+                tagList.forEach((item, index) => {
+                  if (index != tagList.length - 1)
+                    response += item + ", ";
+                  else
+                    response += item;
+                });
+              }
+              else  // This is a new tag for the term
+              {
+                tagList.push(tagToApply);
+                console.log(tagList);
+
+
+                // DO THIS PART LATER. This will involve the applyTagsToTerm function.
+                // Actually, I might just put all of this in that function. This is getting pretty messy to have in this area.
+              }
+            }
+          }
         }
+        catch (e)
+        {
+          console.error(e);
+          await sendMessageToSlack(e, data, 0); // Send the error message to slack. REMOVE BEFORE MAKING OFFICIAL.
+        }
+        
       }
       else if (data.event.text.includes(" hello") || data.event.text.includes(" hi"))
       {
@@ -226,13 +272,25 @@ async function handleEvent(data)
 // Ben
 async function getTagsForTerm(term)
 {
+  let termData;
+  let termTags;
+
   // Get everything about the term. 
+  termData = await queryDB(term);
+  
   // Check to see if it has any tags
-  // If it does:
-    // Put them in a list
-    // Return the list
-  // If it doesn't:
-    // Return null
+  if (termData.Item.hasOwnProperty("Tags")) // Already has tags
+  {
+    console.log("Found tags for the term");
+    termTags = Array.from(termData.Item.Tags);
+    console.log(termTags);
+    return termTags;
+  }
+  else // Doesn't have any tags yet.
+  {
+    console.log("There are no tags for this term");
+    return null;
+  }
 }
 
 // Applys a list of tags to a given term
@@ -354,11 +412,10 @@ async function getDesc(term)  // Ben
   return response;
 }
 
-// 
+// Gets all data about a specific term from the database
+// Ben
 async function queryDB(term)
 {
-  var response = "";
-
   let params = {
     TableName: "AcronymData",
     Key: {
@@ -369,25 +426,23 @@ async function queryDB(term)
   try{
     console.log("About to call the thing");
     let result = await db.get(params).promise();
+    console.log("Got the thing");
 
     if (JSON.stringify(result) != "{}") 
     {
-      console.log(JSON.stringify(result))
-      response = result.Item.Desc;
-      console.log(response);
+      console.log(JSON.stringify(result));
     } 
     else 
     {
-      response = null;
+      result = null;
       console.error("SOMETHING WENT WRONG");
     }
+
+    return result;
   }
   catch (error) {
-    console.error(error);
+    console.error("ERROR: " + error);
   }
-
-  return response;
-
 }
 
 async function readFromDB()
