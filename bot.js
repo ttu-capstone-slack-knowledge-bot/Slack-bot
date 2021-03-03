@@ -87,7 +87,7 @@ async function handleEvent(data)
     case 'DM':
       // Regular expressions to decide if a string matches the pattern needed or not.
       let askForTermRE = /(what does) (?<term>[a-zA-Z0-9 ]{1,}) (mean|stand for)/i;  // Will match anything in the form of "what does ___ mean/stand for"
-      let tagTermRE = /(tag) (?<term>[a-zA-Z0-9 ]{1,}) (with) (?<tag>[a-zA-Z]{1,})/i; // Will match anything in form of "Tag __ with ___."
+      let tagTermRE = /(tag) (?<term>[a-zA-Z0-9 ]{1,}) (with) (?<tag>[a-zA-Z0-9-]{1,})/i; // Will match anything in form of "Tag __ with ___."
 
       if (data.event.text.search(askForTermRE) != -1) // What does __ mean?
       {
@@ -120,74 +120,31 @@ async function handleEvent(data)
       else if (data.event.text.search(tagTermRE) != -1) // Tag __ with ___
       {
         console.log("We're adding a tag");
+      
+        const matchArray = data.event.text.match(tagTermRE); // will return an array with the groups from the regEx
+        let wordToTag = matchArray.groups.term;  // This will hold the term the user wishes to tag
+        let tagToApply = matchArray.groups.tag;   // This will hold the tag the user wishes to apply
+        let response = "";
 
-        try{
-          const matchArray = data.event.text.match(tagTermRE); // will return an array with the groups from the regEx
-          let wordToTag = matchArray.groups.term;  // This will hold the term the user wishes to tag
-          let tagToApply = matchArray.groups.tag;   // This will hold the tag the user wishes to apply
-          let response = "";
-          let tagExists = false;
-  
-          let termExists = await getDesc(wordToTag);
-          if (termExists == null) // Term doesn't exist
-          {
-            response = "Sorry, that term doesn't exist yet, so I can't tag it.";
-          }
-          else if (termExists == -1) // There was some sort of database error
-          {
-            response = "Sorry, there was an eror trying to retrieve the term.";
-          }
-          else // Term exists, so apply the tag.
-          {
-            // First, find out if this term already has tags or not:
-            let tagList = await getTagsForTerm(wordToTag);
-
-            if (tagList === null) // Term doesn't the tag attribute yet
-            {
-              tagList = [tagToApply];
-              console.log(tagList);
-            }
-            else  // Term has tag attribute, so just push the new tag onto the array.
-            {
-              // Check to make sure the tag doesn't already exist
-              tagList.forEach((item) => {
-                if (item.toLowerCase() === tagToApply.toLowerCase())
-                {
-                  console.log("Tag already exists on item");
-                  tagExists = true;
-                }
-              });
-
-              if (tagExists) // Given tag was already in the list of tags for the term
-              {
-                // Tell the user that the term they want to tag already has that tag.
-                response = wordToTag + " has already been tagged with " + tagToApply + ".\n" + "Currently, it has the tags: ";
-
-                // List out the tags so that they know what the currents tags are
-                tagList.forEach((item, index) => {
-                  if (index != tagList.length - 1)
-                    response += item + ", ";
-                  else
-                    response += item;
-                });
-              }
-              else  // This is a new tag for the term
-              {
-                tagList.push(tagToApply);
-                console.log(tagList);
-
-
-                // DO THIS PART LATER. This will involve the applyTagsToTerm function.
-                // Actually, I might just put all of this in that function. This is getting pretty messy to have in this area.
-              }
-            }
-          }
-        }
-        catch (e)
+        let termExists = await getDesc(wordToTag);
+        if (termExists == null) // Term doesn't exist
         {
-          console.error(e);
-          await sendMessageToSlack(e, data, 0); // Send the error message to slack. REMOVE BEFORE MAKING OFFICIAL.
+          response = "Sorry, that term doesn't exist yet, so I can't tag it.";
         }
+        else if (termExists == -1) // There was some sort of database error
+        {
+          response = "Sorry, there was an eror trying to retrieve the term.";
+        }
+        else // Term exists, so apply the tag.
+        {
+          console.log("Tag exists: Entering applyTagToTerm");
+          response = await applyTagToTerm(wordToTag, tagToApply);
+          console.log("Just left: applyTagToTerm");
+        }
+
+        // Give the response back to the user in a thread.
+        await sendMessageToSlack(response, data, 1);
+        
         
       }
       else if (data.event.text.includes(" hello") || data.event.text.includes(" hi"))
@@ -224,7 +181,7 @@ async function handleEvent(data)
           let startIndex = data.event.text.indexOf("add") + 4;
           let fullString = data.event.text.slice(startIndex);
           let splitIndex = fullString.indexOf(':');
-          let newTerm = fullString.slice(0, splitIndex);
+          let newTerm = fullString.slice(0, splitIndex - 1);
           let newDef = fullString.slice(splitIndex+2, data.event.text.length);
 
           await sendMessageToSlack("Adding item to the database...", data, 1);
@@ -295,13 +252,88 @@ async function getTagsForTerm(term)
 
 // Applys a list of tags to a given term
 // Ben
-async function applyTagToTerm(term, tagList)
+async function applyTagToTerm(term, newTag)
 {
-  // Push the taglist to the database for the given term
-  // If no error:
-    // return 1;
-  // If error:
-    // return 0;
+  let tagList = await getTagsForTerm(term);  // Array of all the tags that a term has, if any.
+  let tagExists = false;
+  let response = "";
+  let result;
+
+  // Check to see if the term's database entry has the tag attribute yet, since it isn't required when putting something in the database.
+  if (tagList === null) // Term doesn't the tag attribute yet
+  {
+    tagList = [newTag];
+    console.log(tagList);
+  }
+  else  // Term has tag attribute, so just push the new tag onto the array.
+  {
+    // Check to make sure the tag doesn't already exist
+    tagList.forEach((item) => {
+      if (item.toLowerCase() === newTag.toLowerCase())
+      {
+        console.log("Tag already exists on item");
+        tagExists = true;
+      }
+    });
+
+    if (tagExists) // Given tag was already in the list of tags for the term
+    {
+      // Tell the user that the term they want to tag already has that tag.
+      response = term + " has already been tagged with " + newTag + ".\n" + "Currently, it has the tags: ";
+
+      // List out the tags so that they know what the currents tags are
+      tagList.forEach((item, index) => {
+        if (index != tagList.length - 1)
+          response += item + ", ";
+        else
+          response += item;
+      });
+
+      return response;
+    }
+    else  // This is a new tag for the term
+    {
+      // Put the new tag on the end of the array.
+      tagList.push(newTag);
+    }
+  }
+
+  // Update the database item with the new tag list
+  // This might need to be it's own function? I'm not really sure yet, so I'll just put it here.
+  const table = "AcronymData";
+  const params = {
+      TableName: table,
+      Key: {
+        Name: term
+      },
+      UpdateExpression: 'set #a = :x',
+      ExpressionAttributeNames: {'#a' : 'Tags'},
+      ExpressionAttributeValues: {':x' : tagList}
+  };
+
+  try 
+  {
+    result = await db.update(params).promise();
+    console.log("Update Complete: \n" + result);
+
+    // Tell the user that the term they want to tag already has that tag.
+    response = term + " is now tagged with " + newTag + ".\n" + "It now has the tags: ";
+
+    // List out the tags so that they know what the currents tags are
+    tagList.forEach((item, index) => {
+      if (index != tagList.length - 1)
+        response += item + ", ";
+      else
+        response += item;
+    });
+  }
+  catch (error)
+  {
+    console.error(error);
+    response = "Sorry, there was an error updating the database.";
+  }
+
+  return response;
 }
 
 // Used for pushing data to the home tab of the bot. This could be a good spot for putting the help message, and other commonly needed things
