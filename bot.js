@@ -87,7 +87,7 @@ async function handleEvent(data)
     case 'DM':
       // Regular expressions to decide if a string matches the pattern needed or not.
       let askForTermRE = /(what does) (?<term>[a-zA-Z0-9 ]{1,}) (mean|stand for)/i;  // Will match anything in the form of "what does ___ mean/stand for"
-      let tagTermRE = /(tag) (?<term>[a-zA-Z0-9 ]{1,}) (with) (?<tag>[a-zA-Z0-9-]{1,})/i; // Will match anything in form of "Tag __ with ___."
+      let tagTermRE = /(tag) (?<term>[a-zA-Z0-9 ]{1,}) (with) (?<tag>[_a-zA-Z0-9-]{1,})/i; // Will match anything in form of "Tag __ with ___."
 
       if (data.event.text.search(askForTermRE) != -1) // What does __ mean?
       {
