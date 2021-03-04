@@ -209,7 +209,7 @@ async function handleEvent(data)
           "Ask me \"what does xxx mean?\" and I'll tell you if I know it!\n" +
           "Ask me to \"give me the whole database\" and I'll tell you everything I know!\n" +
           "Tell me \"learn xxx\" and then I'll ask you what it means. Once you tell me, I'll never forget it!\n" +
-          "For a more detailed list of all I can do, reply to this message with \"DM me\" and I'll give you a full list of all my abilities."
+          "For a more detailed list of all I can do, check out my Home Page by clicking on my user icon!";
         await sendMessageToSlack(help, data, 0);
       }
       else 
@@ -392,7 +392,7 @@ async function updateHomeView(user)
         "type": "section",
         "text": {
           "type": "mrkdwn",
-          "text": "• Need to know what a term means? Send me a message in the form of *\"@Cappy what does __ mean\"*, and if I know it I'll reply to your message with the definition!\n\n• Want to tell me something and help me learn! Then you can send me a message in the form of *\"@Cappy add ILC : I love Cappy!\"*, and I'll make sure to remember that for the next time somebody asks.\n\n• Want a simple help message without leaving the channel you're currently in? Then you can just message me with *\"@Cappy help\"* and I'll send you a short version of this message!"
+          "text": "• Need to know what a term means? Send me a message in the form of *\"@Cappy what does __ mean\"*, and if I know it I'll reply to your message with the definition!\n\n• Want to tell me something and help me learn! Then you can send me a message in the form of *\"@Cappy add ILC : I love Cappy!\"*, and I'll make sure to remember that for the next time somebody asks.\n\n• Want a simple help message without leaving the channel you're currently in? Then you can just message me with *\"@Cappy help\"* and I'll send you a short version of this message!\n\n• Want to add a tag to a term? Send me a message in the form of *\"@Cappy tag ___ with ___\", and I'll tag that term with the term you give me. Make sure the new tag doesn't have any spaces in it though!"
         }
       }
   ];
