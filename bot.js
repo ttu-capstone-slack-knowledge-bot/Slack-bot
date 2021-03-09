@@ -300,9 +300,8 @@ async function applyTagToTerm(term, newTag)
 
   // Update the database item with the new tag list
   // This might need to be it's own function? I'm not really sure yet, so I'll just put it here.
-  const table = "AcronymData";
   const params = {
-      TableName: table,
+      TableName: termTable,
       Key: {
         Name: term
       },
@@ -444,7 +443,7 @@ async function getDesc(term)  // Ben
   return response;
 }
 
-// Gets all data about a specific term from the database
+// Gets all data/attributes about a single term from the database
 // Ben
 async function queryDB(term)
 {
