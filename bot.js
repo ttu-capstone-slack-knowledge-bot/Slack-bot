@@ -88,6 +88,7 @@ async function handleEvent(data)
       // Regular expressions to decide if a string matches the pattern needed or not.
       let askForTermRE = /(what does) (?<term>[a-zA-Z0-9 ]{1,}) (mean|stand for)/i;  // Will match anything in the form of "what does ___ mean/stand for"
       let tagTermRE = /(tag) (?<term>[a-zA-Z0-9 ]{1,}) (with) (?<tag>[_a-zA-Z0-9-]{1,})/i; // Will match anything in form of "Tag __ with ___."
+      let lookForTagRE = /(terms|acronyms) [a-zA-Z ]*(tagged with) (?<tag>[_a-zA-Z-]{1,})/i;  // Will match anything in the form of "... tagged with ___"
 
       if (data.event.text.search(askForTermRE) != -1) // What does __ mean?
       {
@@ -146,6 +147,15 @@ async function handleEvent(data)
         await sendMessageToSlack(response, data, 1);
         
         
+      }
+      else if (data.event.text.search(lookForTagRE) != -1)
+      {
+        const matchArray = data.event.text.match(lookForTagRE); // will return an array with the groups from the regEx
+        let tagToFind = matchArray.groups.tag;  // This will hold the term the user wishes to tag
+        let response = "";
+
+        response = await findTermsWithTag(tagToFind);
+        await sendMessageToSlack(response, data, 1);
       }
       else if (data.event.text.includes(" hello") || data.event.text.includes(" hi"))
       {
@@ -223,6 +233,59 @@ async function handleEvent(data)
       await displayHome(data.event.user);
     break;
   }
+}
+
+// Sends a request to the database for all the terms that are tagged with a certain tag, and returns a string with all the terms.
+// Ben
+async function findTermsWithTag(tag)
+{
+  let result;
+  let response;
+
+  // create the JSON payload
+  const params = {
+    TableName : termTable,
+    FilterExpression: "contains (Tags, :tag)",
+    ExpressionAttributeValues : {   
+      ':tag' : tag
+    }
+  }
+
+  // Try catch block in case there are errors.
+  try 
+  {
+    // Ask the database for all the terms
+    result = await db.scan(params).promise();
+
+    if (result.Count == 0)  // No terms with that tag
+    {
+      response = "I didn't find any terms tagged with " + tag + ".";
+    }
+    else    // Found some terms with that tag
+    {
+      // Start the response 
+      if (result.Count == 1) {
+        response = "I found " + result.Count + " term tagged with " + tag + ":\n";
+      }
+      else {
+        response = "I found " + result.Count + " terms tagged with " + tag + ":\n";
+      }
+
+      // Generate the string of terms
+      result.Items.forEach((item) => {
+        response += "  - " + item.Name + "\n";
+      });
+    } 
+  }
+  catch (e)
+  {
+    // Log the error and tell the user there was a problem.
+    console.error(e);
+    response = "Sorry, there was an error getting that info from the database.";
+  }
+
+  // Return the response string back to the calling method
+  return response;
 }
 
 // Checks to see if a term has any tags, and returns a list of tags if it does.
