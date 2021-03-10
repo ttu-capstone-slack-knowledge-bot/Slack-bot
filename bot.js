@@ -5,8 +5,14 @@ const Bot = new WebClient(process.env.AUTH_TOKEN);
 const AWS = require('aws-sdk');
 const db = new AWS.DynamoDB.DocumentClient({region: "us-east-1"});
 const termTable = "AcronymData";
+const queryString = require('query-string');
 
 module.exports.run = async (data) => {
+
+  console.log("This is gonna be ugly.");
+  console.log(queryString.parse(data.body));
+
+
   const dataObject = JSON.parse (data.body);
 
   let response = {
@@ -456,6 +462,21 @@ async function updateHomeView(user)
           "type": "mrkdwn",
           "text": "• Need to know what a term means? Send me a message in the form of *\"@Cappy what does __ mean\"*, and if I know it I'll reply to your message with the definition!\n\n• Want to tell me something and help me learn! Then you can send me a message in the form of *\"@Cappy add ILC : I love Cappy!\"*, and I'll make sure to remember that for the next time somebody asks.\n\n• Want a simple help message without leaving the channel you're currently in? Then you can just message me with *\"@Cappy help\"* and I'll send you a short version of this message!\n\n• Want to add a tag to a term? Send me a message in the form of *\"@Cappy tag ___ with ___\", and I'll tag that term with the term you give me. Make sure the new tag doesn't have any spaces in it though!"
         }
+      },
+      {
+        "type": "actions",
+        "elements": [
+          {
+            "type": "button",
+            "text": {
+              "type": "plain_text",
+              "text": "Click Me",
+              "emoji": true
+            },
+            "value": "click_me_123",
+            "action_id": "Open-Edit"
+          }
+        ]
       }
   ];
 
