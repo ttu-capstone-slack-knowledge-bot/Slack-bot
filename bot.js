@@ -5,21 +5,83 @@ const Bot = new WebClient(process.env.AUTH_TOKEN);
 const AWS = require('aws-sdk');
 const db = new AWS.DynamoDB.DocumentClient({region: "us-east-1"});
 const termTable = "AcronymData";
-const queryString = require('query-string');
+const queryString = require('querystring');
 
 module.exports.run = async (data) => {
 
-  console.log("This is gonna be ugly.");
-  console.log(queryString.parse(data.body));
-
-
-  const dataObject = JSON.parse (data.body);
-
-  let response = {
-      statusCode: 200,
-      body : {},
-      //headers : {'X-Slack-No-Retry' : 1}
+  const response = {
+    statusCode: 200
   };
+
+  // Alright, so here's a messy way of getting it to work in one file, but it'll work. First thing we gotta do is figure out of this event has
+  //  a payload or not. If it does, that means it was an interation event, so we gotta handle that payload and decoding it.
+  //  If it doesn't, then that means it was a regular event (ie: message) and we just need to do what we've been doing with it.
+  // Due to the way they are encoded, payload events start with 'payload=%...' as their data, so we can just check for that.
+  // HOPEFULLY, that will never show up in a regular event. I can't think of any reason why it would, and we can work out more checks if needed.
+  //  But this one should be solid enough. For this project anyways.
+  if (data.body.includes('payload=%'))
+  {
+    console.log("Payload Event");
+    console.log(data);
+    console.log(data.body);
+    console.log(queryString.parse(data.body))
+    let temp = JSON.parse(queryString.parse(data.body).payload)
+    console.log(temp);
+
+    let message = "You pushed the button!\nThe trigger id is: " + temp.trigger_id;
+
+    let params = {
+      channel: temp.user.id,
+      text: message
+    }
+  
+    try 
+    {  
+      let val = await Bot.chat.postMessage(params);
+      console.log(val);
+    } 
+    catch (error) 
+    {
+      console.error("Error in 0: ", error);
+    }
+
+    return response;
+
+
+  }
+  else
+  {
+    console.log("Regular Event");
+    console.log(data);
+    console.log(data.body);
+
+    if (data.body.includes('token='))
+    {
+      let temp = queryString.parse(data.body);
+      console.log(temp);
+
+      let message = "You used a slash command!\nThe trigger id is: " + temp.trigger_id;
+
+      let params = {
+        channel: temp.channel_id,
+        text: message
+      }
+    
+      try 
+      {  
+        let val = await Bot.chat.postMessage(params);
+        console.log(val);
+      } 
+      catch (error) 
+      {
+        console.error("Error in 0: ", error);
+      }
+
+      return response;
+    }
+  }
+
+  const dataObject = JSON.parse(data.body);
 
   try {
     if ( !('X-Slack-Retry-Num' in data.headers) )
@@ -33,6 +95,7 @@ module.exports.run = async (data) => {
           await handleEvent(dataObject, data);
 
           break;
+
               
       }
     }
@@ -410,7 +473,7 @@ async function displayHome(user)
 {
   const params = {
     user_id: user,
-    view: await updateHomeView(user)
+    view: await updateHomeView(user),
   };
 
   const result = await Bot.views.publish(params)
