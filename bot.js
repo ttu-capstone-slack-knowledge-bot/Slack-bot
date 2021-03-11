@@ -6,6 +6,7 @@ const AWS = require('aws-sdk');
 const db = new AWS.DynamoDB.DocumentClient({region: "us-east-1"});
 const termTable = "AcronymData";
 const queryString = require('querystring');
+const modalData = require('./modalInfo.js');
 
 module.exports.run = async (data) => {
 
@@ -49,22 +50,36 @@ async function handleInterationEvent(data)
     body: ""
   }
 
-  // Will get rid of this 'sending message' part later. Just nice for debugging.
-  let message = "You pushed the button!\nThe trigger id is: " + data.trigger_id;  
+  const interaction = data.type;
 
-  let params = {
-    channel: data.user.id,
-    text: message
-  };
-
-  try 
-  {  
-    let val = await Bot.chat.postMessage(params);
-    console.log(val);
-  } 
-  catch (error) 
+  switch (interaction)
   {
-    console.error("Error trying to tell the user they pushed a button.", error);
+    case "block_actions":
+      await postModal(data, modalData.secondModal);
+    break;
+
+    case "view_submission":
+      let newModal = modalData.firstModal;
+      newModal.blocks[0].text.text = "Hey, you just sent me ";
+    break;
+  }
+  
+
+  let modal = {
+    trigger_id: data.trigger_id,
+    view: modalData.secondModal
+  }
+
+  try{
+    const result = await Bot.views.open(modal);
+
+    console.log("Modal posted successfully!");
+    console.log(result);
+  }
+  catch (error)
+  {
+    console.log("Error posting the modal");
+    console.log(error);
   }
 
   // Return the response message
@@ -79,22 +94,15 @@ async function handleSlashCommand(data)
     body: ""
   }
 
-  let message = "You used a slash command!\nThe trigger id is: " + data.trigger_id;
+  // Get the command from the payload so we can decide what to do with it.
+  const command = data.command;
 
-  let params = {
-    channel: data.channel_id,
-    text: message
-  };
-
-  try 
-  {  
-    let val = await Bot.chat.postMessage(params);
-    console.log(val);
-  } 
-  catch (error) 
+  switch (command)
   {
-    console.error("Error in slash commands: ", error);
-    giveBack.statusCode = 500;
+    case "/testing":
+      
+      await postModal(data, modalData.inputModal);
+      break;
   }
 
   // Resturn the response message
@@ -779,7 +787,30 @@ async function sendMessageToSlack(message, data, method)
   
 }
 
+async function postModal(data, viewData)
+{
+  let modal = {
+    trigger_id: data.trigger_id,
+    view: viewData
+  }
+
+  try{
+    const result = await Bot.views.open(modal);
+
+    console.log("Modal posted successfully!");
+    console.log(result);
+    return 0;
+  }
+  catch (error)
+  {
+    console.log("Error posting the modal");
+    console.log(error);
+    return -1;
+  }
+}
+
 // This function is used to determine if we're working with a Slash Event, an interactive event trigger, or just a regular ol' message.
+// Returns a string of the calling type to be used in getDataObject and run.
 async function figureOutWhatCalledThis(data)
 {
   let methodType = "";
