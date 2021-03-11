@@ -9,111 +9,138 @@ const queryString = require('querystring');
 
 module.exports.run = async (data) => {
 
-  const response = {
+  let response = {
     statusCode: 200
   };
 
-  // Alright, so here's a messy way of getting it to work in one file, but it'll work. First thing we gotta do is figure out of this event has
-  //  a payload or not. If it does, that means it was an interation event, so we gotta handle that payload and decoding it.
-  //  If it doesn't, then that means it was a regular event (ie: message) and we just need to do what we've been doing with it.
-  // Due to the way they are encoded, payload events start with 'payload=%...' as their data, so we can just check for that.
-  // HOPEFULLY, that will never show up in a regular event. I can't think of any reason why it would, and we can work out more checks if needed.
-  //  But this one should be solid enough. For this project anyways.
-  if (data.body.includes('payload=%'))
+  let method = await figureOutWhatCalledThis(data);
+  let dataObject = await getDataObject(data, method);
+
+  // Check to make sure there wasn't an error in the process.
+  if (dataObject === -1)
   {
-    console.log("Payload Event");
-    console.log(data);
-    console.log(data.body);
-    console.log(queryString.parse(data.body))
-    let temp = JSON.parse(queryString.parse(data.body).payload)
-    console.log(temp);
-
-    let message = "You pushed the button!\nThe trigger id is: " + temp.trigger_id;
-
-    let params = {
-      channel: temp.user.id,
-      text: message
-    }
-  
-    try 
-    {  
-      let val = await Bot.chat.postMessage(params);
-      console.log(val);
-    } 
-    catch (error) 
-    {
-      console.error("Error in 0: ", error);
-    }
-
-    return response;
-
-
-  }
-  else
-  {
-    console.log("Regular Event");
-    console.log(data);
-    console.log(data.body);
-
-    if (data.body.includes('token='))
-    {
-      let temp = queryString.parse(data.body);
-      console.log(temp);
-
-      let message = "You used a slash command!\nThe trigger id is: " + temp.trigger_id;
-
-      let params = {
-        channel: temp.channel_id,
-        text: message
-      }
-    
-      try 
-      {  
-        let val = await Bot.chat.postMessage(params);
-        console.log(val);
-      } 
-      catch (error) 
-      {
-        console.error("Error in 0: ", error);
-      }
-
-      return response;
-    }
-  }
-
-  const dataObject = JSON.parse(data.body);
-
-  try {
-    if ( !('X-Slack-Retry-Num' in data.headers) )
-    {
-      switch (dataObject.type) {
-        case 'url_verification':
-          response.body = verifyCall (dataObject);
-          break;
-        case 'event_callback':
-
-          await handleEvent(dataObject, data);
-
-          break;
-
-              
-      }
-    }
-  }
-  catch ( err ) {
-
-  }
-  finally {
+    response.statusCode = 500;
     return response;
   }
 
+  // Based on what we decided the method is, pass it off to it's proper handler.
+  if (method == "interaction")
+  { 
+    response = await handleInterationEvent(dataObject);
+  }
+  else if (method == "slash")
+  {
+    response = await handleSlashCommand(dataObject);
+  }
+  else if (method == "message")
+  {
+    response = await handleMessage(dataObject, data);
+  }
+
+  return response;
 };
+
+async function handleInterationEvent(data)
+{
+  // This is what will tell Slack everything went good. Change/add any fields as needed to reflect the status.
+  let giveBack = {
+    statusCode: 200,
+    body: ""
+  }
+
+  // Will get rid of this 'sending message' part later. Just nice for debugging.
+  let message = "You pushed the button!\nThe trigger id is: " + data.trigger_id;  
+
+  let params = {
+    channel: data.user.id,
+    text: message
+  };
+
+  try 
+  {  
+    let val = await Bot.chat.postMessage(params);
+    console.log(val);
+  } 
+  catch (error) 
+  {
+    console.error("Error trying to tell the user they pushed a button.", error);
+  }
+
+  // Return the response message
+  return giveBack;
+}
+
+async function handleSlashCommand(data)
+{
+  // This is what will tell Slack everything went good. Change/add any fields as needed to reflect the status.
+  let giveBack = {
+    statusCode: 200,
+    body: ""
+  }
+
+  let message = "You used a slash command!\nThe trigger id is: " + data.trigger_id;
+
+  let params = {
+    channel: data.channel_id,
+    text: message
+  };
+
+  try 
+  {  
+    let val = await Bot.chat.postMessage(params);
+    console.log(val);
+  } 
+  catch (error) 
+  {
+    console.error("Error in slash commands: ", error);
+    giveBack.statusCode = 500;
+  }
+
+  // Resturn the response message
+  return giveBack;
+}
+
+// Not really a fan of this, but I didn't know how else to do this without changing the whole handleEvent function and making it messy.
+async function handleMessage(data, bigData)
+{
+  let response;
+
+  if ( !('X-Slack-Retry-Num' in bigData.headers) )
+  {
+    switch (data.type) {
+      case 'url_verification':
+        let response = {
+          statusCode: 200,
+          body: {}
+        }
+
+        response.body = verifyCall (data);
+        break;
+      case 'event_callback':
+        response = await handleEvent(data);
+        break; 
+    }
+  }
+  else  // Something went wrong if we got here.
+  {
+    response = {
+      statusCode: 500,
+      body: "Sorry, something went wrong with your request."
+    }
+
+    console.error(data);
+    console.error(bigData);
+  }
+
+  return response;
+}
 
 function verifyCall (data)
 {
   return data.challenge;
 }
 
+// Need to add the return response. Slack needs to know we got its message and everything is good.
 async function handleEvent(data)
 {
   // If the message being recieved was sent by a bot, ignore it
@@ -142,7 +169,6 @@ async function handleEvent(data)
   {
     messageType = "home_opened";
   }
-
 
   switch (messageType)
   {
@@ -748,4 +774,91 @@ async function sendMessageToSlack(message, data, method)
   }
 
   
+}
+
+// This function is used to determine if we're working with a Slash Event, an interactive event trigger, or just a regular ol' message.
+async function figureOutWhatCalledThis(data)
+{
+  let methodType = "";
+
+  // Since data.body is currently a string, we can look at it and check for certain keywords within it to figure out what we're dealing with.
+  if (data.body.includes('payload=%'))  // This is an interactive event, like a button press
+  {
+    // Leaving these console.logs in for now, since they give some pretty useful information.
+    console.log("Payload Event");
+    console.log(data);
+    console.log(data.body);
+    console.log(queryString.parse(data.body))
+
+    methodType = "interaction"
+  }
+  else if (data.body.includes('token='))  // This is a Slash Command
+  {
+    console.log("Slash Event");
+    console.log(data);
+    console.log(data.body);
+    console.log(queryString.parse(data.body))
+
+    methodType = "slash"
+
+  }
+  else  // This is a regular message
+  {
+    methodType = "message";
+  }
+
+  return methodType;
+}
+
+// This function will return the data object we need so that we can do work, based on the kind of event that triggered us, since they need to
+//  be decoded differently depending on the kind of event.
+async function getDataObject(data, method)
+{
+  // Now that we know what kind of 'payload' we're dealing with, we can parse it the correct way and send it back to the main function
+  let dataObject;
+
+  switch (method)
+  {
+    case "interaction":   // Interaction event, like a button pressed
+      
+      // Parse the data
+      dataObject = JSON.parse(queryString.parse(data.body).payload);
+
+      // Log it for debugging
+      console.log("Parsed Data: ");
+      console.log(dataObject);
+      break;
+
+    case "slash":   // Slash command
+
+      // Parse the data
+      dataObject = queryString.parse(data.body);
+
+      // Log it for debugging
+      console.log("Parsed Data: ");
+      console.log(dataObject);
+      break;
+
+    case "message":   // User typed message
+
+      // Parse the data
+      dataObject = JSON.parse(data.body);
+
+      // Log it for debugging
+      console.log("Parsed Data: ");
+      console.log(dataObject);
+      break;
+
+    default:  // This should never be reached. If it is, there was a mistake somehwere, so look at the logs and figure out why.
+      console.error("There was an error somewhere. I am in the default case of getDataObject.");
+      console.error("Method: " + method);
+      console.error("Data: ");
+      console.error(data);
+
+      dataObject = -1;  // Set it to -1 so the calling method knows there was an error.
+      break;
+  }
+
+  return dataObject;
+
 }
