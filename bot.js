@@ -9,9 +9,7 @@ const queryString = require('querystring');
 
 module.exports.run = async (data) => {
 
-  let response = {
-    statusCode: 200
-  };
+  let response;
 
   let method = await figureOutWhatCalledThis(data);
   let dataObject = await getDataObject(data, method);
@@ -19,20 +17,23 @@ module.exports.run = async (data) => {
   // Check to make sure there wasn't an error in the process.
   if (dataObject === -1)
   {
-    response.statusCode = 500;
+    response = {
+      statusCode: 500,
+      body: "Looks like we don't know how to handle whatever just happened."
+    }
     return response;
   }
 
   // Based on what we decided the method is, pass it off to it's proper handler.
-  if (method == "interaction")
+  if (method === "interaction")
   { 
     response = await handleInterationEvent(dataObject);
   }
-  else if (method == "slash")
+  else if (method === "slash")
   {
     response = await handleSlashCommand(dataObject);
   }
-  else if (method == "message")
+  else if (method === "message")
   {
     response = await handleMessage(dataObject, data);
   }
@@ -103,39 +104,41 @@ async function handleSlashCommand(data)
 // Not really a fan of this, but I didn't know how else to do this without changing the whole handleEvent function and making it messy.
 async function handleMessage(data, bigData)
 {
-  let response;
+  let giveBack;
 
   if ( !('X-Slack-Retry-Num' in bigData.headers) )
   {
-    switch (data.type) {
+    switch (data.type) 
+    {
       case 'url_verification':
-        let response = {
+        giveBack = {
           statusCode: 200,
           body: {}
-        }
+        };
 
-        response.body = verifyCall (data);
+        giveBack.body = await verifyCall (data);
         break;
+
       case 'event_callback':
-        response = await handleEvent(data);
+        giveBack = await handleEvent(data);
         break; 
     }
   }
-  else  // Something went wrong if we got here.
+  else  // Slack never got the OK from us, so it tried to resend the event.
   {
-    response = {
+    giveBack = {
       statusCode: 500,
       body: "Sorry, something went wrong with your request."
     }
-
+    console.error("Slack retried sending the event.");
     console.error(data);
     console.error(bigData);
   }
 
-  return response;
+  return giveBack;
 }
 
-function verifyCall (data)
+async function verifyCall (data)
 {
   return data.challenge;
 }
@@ -143,10 +146,17 @@ function verifyCall (data)
 // Need to add the return response. Slack needs to know we got its message and everything is good.
 async function handleEvent(data)
 {
+  // This is what will tell Slack everything went good. Change/add any fields as needed to reflect the status.
+  let giveBack = {
+    statusCode: 200,
+    body: "All good"
+  };
+
+
   // If the message being recieved was sent by a bot, ignore it
   // Might try to find a way to identify that it was sent by this specific bot later, but for now this works
   if (data.event.hasOwnProperty('bot_profile'))
-    return;
+    return giveBack;
 
   // Test to see if the message is an @ mention, a DM, or just a regular message it should ignore
   let messageType;
@@ -211,7 +221,6 @@ async function handleEvent(data)
         }
 
         await sendMessageToSlack(response, data, 1);
-        return;
       }
       else if (data.event.text.search(tagTermRE) != -1) // Tag __ with ___
       {
@@ -256,27 +265,22 @@ async function handleEvent(data)
       {
         const text = "Sup, human.";
         await sendMessageToSlack(text, data, 0);
-        return;
       }
       else if (data.event.text.includes("how are you"))
       {
         await sendMessageToSlack("You know, just livin' one day at a time.", data, 0);
-        return;
       }
       else if (data.event.text.includes("color is the sky"))
       {
         await sendMessageToSlack("Probably blue, but I dont have eyes, so who knows", data, 0);
-        return;
       }
       else if (data.event.text.includes("meaning of life"))
       {
         await sendMessageToSlack("42. It's always 42", data, 0);
-        return;
       }
       else if (data.event.text.includes("favorite color"))
       {
         await sendMessageToSlack("Purple", data, 0);
-        return;
       }
       else if (data.event.text.includes(" add"))
       {
@@ -298,8 +302,6 @@ async function handleEvent(data)
         {
           console.error(error);
         }
-
-        return;
       }
       else if (data.event.text.includes(" give")) 
       {
@@ -320,7 +322,6 @@ async function handleEvent(data)
       else 
       {
         await sendMessageToSlack("Sorry, I don't know how to handle that request yet.", data, 0);
-        return;
       };
 
     break;
@@ -328,6 +329,8 @@ async function handleEvent(data)
       await displayHome(data.event.user);
     break;
   }
+
+  return giveBack;
 }
 
 // Sends a request to the database for all the terms that are tagged with a certain tag, and returns a string with all the terms.
@@ -804,6 +807,7 @@ async function figureOutWhatCalledThis(data)
   }
   else  // This is a regular message
   {
+    console.log("Message Event");
     methodType = "message";
   }
 
