@@ -57,6 +57,7 @@ module.exports = {
       },
       {
         "type": "input",
+        "block_id": "inputText",
         "element": {
           "type": "plain_text_input",
           "action_id": "third_modal_submit"
@@ -67,6 +68,45 @@ module.exports = {
           "emoji": true
         }
       }
-    ]
+    ],
+    "callback_id": "basic-input"
+  },
+  getNameModal: {
+    "type": "modal",
+	"title": {
+		"type": "plain_text",
+		"text": "Hi, I'm Cappy!",
+		"emoji": true
+	},
+	"submit": {
+		"type": "plain_text",
+		"text": "Submit",
+		"emoji": true
+	},
+	"close": {
+		"type": "plain_text",
+		"text": "Cancel",
+		"emoji": true
+	},
+	"blocks": [
+		{
+			"type": "input",
+			"block_id": "nameInput",
+			"hint": {
+				"type": "plain_text",
+				"text": "You don't have to tell me your real name. A nickname is cool too."
+			},
+			"element": {
+				"type": "plain_text_input",
+				"action_id": "nameEntered"
+			},
+			"label": {
+				"type": "plain_text",
+				"text": "What's your name?",
+				"emoji": true
+			}
+		}
+	],
+	"callback_id": "getName"
   }
 }

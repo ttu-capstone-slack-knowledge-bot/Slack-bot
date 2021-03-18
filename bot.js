@@ -55,33 +55,36 @@ async function handleInterationEvent(data)
   switch (interaction)
   {
     case "block_actions":
-      await postModal(data, modalData.secondModal);
+      await postModal(data, modalData.firstModal);
     break;
 
     case "view_submission":
-      let newModal = modalData.firstModal;
-      newModal.blocks[0].text.text = "Hey, you just sent me ";
+
+      if (data.view.callback_id == "getName")
+      {
+        let nameInput = data.view.state.values.nameInput.nameEntered.value;
+        console.log(nameInput);
+        console.log("Did that work?");
+
+        let message = "Thanks " + nameInput + ", nice to meet you!";
+
+        let params = {
+          channel: data.user.id,
+          text: message
+        };
+  
+        try {
+          let val = await Bot.chat.postMessage(params);
+          console.log(val);
+        }
+        catch (error)
+        {
+          console.error("Error in 1: ", error)
+        }
+      }
     break;
   }
   
-
-  let modal = {
-    trigger_id: data.trigger_id,
-    view: modalData.secondModal
-  }
-
-  try{
-    const result = await Bot.views.open(modal);
-
-    console.log("Modal posted successfully!");
-    console.log(result);
-  }
-  catch (error)
-  {
-    console.log("Error posting the modal");
-    console.log(error);
-  }
-
   // Return the response message
   return giveBack;
 }
@@ -101,7 +104,7 @@ async function handleSlashCommand(data)
   {
     case "/testing":
       
-      await postModal(data, modalData.inputModal);
+      await postModal(data, modalData.getNameModal);
       break;
   }
 
