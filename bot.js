@@ -104,7 +104,7 @@ async function handleSlashCommand(data)
   {
     case "/testing":
       
-      await postModal(data, modalData.getNameModal);
+      await postModal(data, modalData.editModal);
       break;
   }
 
@@ -249,7 +249,7 @@ async function handleEvent(data)
         }
         else if (termExists == -1) // There was some sort of database error
         {
-          response = "Sorry, there was an eror trying to retrieve the term.";
+          response = "Sorry, there was an error trying to retrieve the term.";
         }
         else // Term exists, so apply the tag.
         {
@@ -351,10 +351,12 @@ async function findTermsWithTag(tag)
   let result;
   let response;
 
+  tag = tag.toLowerCase();
+
   // create the JSON payload
   const params = {
     TableName : termTable,
-    FilterExpression: "contains (Tags, :tag)",
+    FilterExpression: "contains (LowerTags, :tag)",
     ExpressionAttributeValues : {   
       ':tag' : tag
     }
@@ -382,7 +384,7 @@ async function findTermsWithTag(tag)
 
       // Generate the string of terms
       result.Items.forEach((item) => {
-        response += "  - " + item.Name + "\n";
+        response += "  - " + item.RegName + "\n";
       });
     } 
   }
@@ -403,17 +405,26 @@ async function getTagsForTerm(term)
 {
   let termData;
   let termTags;
+  let lowerTermTags;
 
   // Get everything about the term. 
   termData = await queryDB(term);
   
   // Check to see if it has any tags
-  if (termData.Item.hasOwnProperty("Tags")) // Already has tags
+  if (termData.Item.hasOwnProperty("LowerTags")) // Already has tags
   {
     console.log("Found tags for the term");
-    termTags = Array.from(termData.Item.Tags);
+    termTags = Array.from(termData.Item.RegTags);
+    lowerTermTags = Array.from(termData.Item.LowerTags);
     console.log(termTags);
-    return termTags;
+    console.log(lowerTermTags);
+
+    let bothTags = {
+      reg: termTags,
+      lower: lowerTermTags
+    };
+
+    return bothTags;
   }
   else // Doesn't have any tags yet.
   {
@@ -426,22 +437,29 @@ async function getTagsForTerm(term)
 // Ben
 async function applyTagToTerm(term, newTag)
 {
-  let tagList = await getTagsForTerm(term);  // Array of all the tags that a term has, if any.
+  let tagObject = await getTagsForTerm(term);  // Array of all the tags that a term has, if any.
+  let regTags;
+  let lowerTags;
   let tagExists = false;
   let response = "";
   let result;
 
   // Check to see if the term's database entry has the tag attribute yet, since it isn't required when putting something in the database.
-  if (tagList === null) // Term doesn't the tag attribute yet
+  if (tagObject === null) // Term doesn't the tag attribute yet
   {
-    tagList = [newTag];
-    console.log(tagList);
+    regTags = [newTag];
+    lowerTags = [newTag.toLowerCase()];
+    console.log(regTags);
+    console.log(lowerTags);
   }
   else  // Term has tag attribute, so just push the new tag onto the array.
   {
+    regTags = tagObject.reg;
+    lowerTags = tagObject.lower;
+
     // Check to make sure the tag doesn't already exist
-    tagList.forEach((item) => {
-      if (item.toLowerCase() === newTag.toLowerCase())
+    lowerTags.forEach((item) => {
+      if (item === newTag.toLowerCase())
       {
         console.log("Tag already exists on item");
         tagExists = true;
@@ -454,8 +472,8 @@ async function applyTagToTerm(term, newTag)
       response = term + " has already been tagged with " + newTag + ".\n" + "Currently, it has the tags: ";
 
       // List out the tags so that they know what the currents tags are
-      tagList.forEach((item, index) => {
-        if (index != tagList.length - 1)
+      regTags.forEach((item, index) => {
+        if (index != regTags.length - 1)
           response += item + ", ";
         else
           response += item;
@@ -466,7 +484,8 @@ async function applyTagToTerm(term, newTag)
     else  // This is a new tag for the term
     {
       // Put the new tag on the end of the array.
-      tagList.push(newTag);
+      regTags.push(newTag);
+      lowerTags.push(newTag.toLowerCase());
     }
   }
 
@@ -475,11 +494,17 @@ async function applyTagToTerm(term, newTag)
   const params = {
       TableName: termTable,
       Key: {
-        Name: term
+        LowerName: term.toLowerCase()
       },
-      UpdateExpression: 'set #a = :x',
-      ExpressionAttributeNames: {'#a' : 'Tags'},
-      ExpressionAttributeValues: {':x' : tagList}
+      UpdateExpression: 'set #a = :x, #b = :y',
+      ExpressionAttributeNames: {
+        '#a' : 'RegTags',
+        '#b' : 'LowerTags'
+      },
+      ExpressionAttributeValues: {
+        ':x' : regTags,
+        ':y' : lowerTags
+      }
   };
 
   try 
@@ -491,8 +516,8 @@ async function applyTagToTerm(term, newTag)
     response = term + " is now tagged with " + newTag + ".\n" + "It now has the tags: ";
 
     // List out the tags so that they know what the currents tags are
-    tagList.forEach((item, index) => {
-      if (index != tagList.length - 1)
+    regTags.forEach((item, index) => {
+      if (index != regTags.length - 1)
         response += item + ", ";
       else
         response += item;
@@ -528,18 +553,18 @@ async function displayHome(user)
   }
 }
 
-
-
 // Creating and using this instead of queryDB to make it clear that all this does is get the desc of a term, and nothing else.
 // Accepts - the term to be looked for
 // Returns - either the term, null if not found, or -1 if there was an error thrown.
 async function getDesc(term)  // Ben
 {
   let response;
+  term = term.toLowerCase();
+
   const params = {
     TableName: termTable,
     Key: {
-      Name: term
+      LowerName: term
     },
     AttributesToGet: [
       "Desc"
@@ -572,10 +597,13 @@ async function getDesc(term)  // Ben
 // Ben
 async function queryDB(term)
 {
+  // Convert the term to lowercase for checking
+  term = term.toLowerCase();
+
   let params = {
     TableName: "AcronymData",
     Key: {
-      Name: term
+      LowerName: term
     }
   };
 
@@ -606,8 +634,7 @@ async function readFromDB()
   let listOfTerms = "";
 
   const params = {
-    TableName: "AcronymData",
-    Limit: 10
+    TableName: "AcronymData"
   }
 
   let result = await db.scan(params).promise();
@@ -615,8 +642,8 @@ async function readFromDB()
     console.log("Thing has been read");
     
     result.Items.forEach(function(item) {
-      console.log(item.Name);
-      var tempString = item.Name + ": " + item.Desc + "\n";
+      console.log(item.RegName);
+      var tempString = item.RegName + ": " + item.Desc + "\n";
       listOfTerms = listOfTerms.concat(tempString);
     })
     console.log(listOfTerms);
@@ -636,8 +663,11 @@ async function sendToDB(name, desc)
   const params = {
       TableName: table,
       Item:{
-        "Name": name,
-        "Desc": desc
+        "RegName": name,
+        "LowerName": name.toLowerCase(),
+        "Desc": desc,
+        "LowerTags": [],
+        "RegTags": []
       }
   };
 
