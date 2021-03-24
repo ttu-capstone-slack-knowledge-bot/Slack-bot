@@ -104,7 +104,7 @@ async function handleSlashCommand(data)
   {
     case "/testing":
       
-      await postModal(data, modalData.editModal);
+      await postModal(data, modalData.getNameModal);
       break;
   }
 
