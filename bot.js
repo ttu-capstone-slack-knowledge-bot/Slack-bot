@@ -101,11 +101,18 @@ async function handleEvent(data)
        
         if (desc == null) {
           // Term doesn't exist yet
-          response = "Sorry, I don't know that yet.";
-
-          // This might be a good spot for asking if they'd like to add the term to the database.
-          
-
+          response = "Sorry, I don't know that term yet. Would you like to add it?";
+          await sendMessageToSlack(response, data, 1); 
+/*
+          // Add term to the database if the user chooses to define it
+          if (_____) {
+            response = "Please describe " + wordToFind;
+            sendToDB(wordToFind, ____);
+          }
+          else {
+            response = "Ok. Have a good day!";
+          }
+*/
         } else if (desc == -1) {
           // Database responded with an error. 
           response = wordToFind +  "Sorry, there was an error.";
