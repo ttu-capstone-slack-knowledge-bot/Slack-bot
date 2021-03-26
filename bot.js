@@ -86,41 +86,44 @@ async function handleInterationEvent(data)
     //Clay
       else if (data.view.callback_id == "edit-term")
       {
-        let lowerTerm = "test";
         let editTermInput1 = data.view.state.values.editTermInput1.editTermEntered1.value;
         console.log("pikaboo", editTermInput1);
         console.log("GOT HERE IN EDIT");
         let termReply = await queryDB(editTermInput1);
-        console.log("Successful termReply", termReply);
+        console.log("Successful termReply", termReply.Item.RegName);
+        let regTerm = termReply.Item.RegName;
+        let message = "";
 
-        if (termReply.Item.RegName == "AWS"){
-          console.log("**woo**");
-        }/*
-        if(editTermInput1.toLowerCase() == queryDB(termInputEdit1.toLowerCase().RegName){
-          let termToEdit = termInputEdit;
-          chat.postMessage("Thanks! Edit was successful!");
-          console.log("Term Matched");
-        } else console.log("Term Not Found");
-        */
-       // console.log(termInput);
-       // console.log("Did that work?2");
+        //if (termReply.Item.RegName == "AWS"){
+        //  console.log("**woo**");
+        //}
+        if (editTermInput1 == regTerm){
+          console.log("Term Matched DB Term", editTermInput1, " = ", regTerm);
+          let termFoundMSG = ("(testing) Term Found In DB!");
+          message = termFoundMSG;
+          let editTermInput2 = data.view.state.values.editTermInput2.editTermEntered2.value;
+          let regDesc = editTermInput2;
+          sendToDB(regTerm, regDesc);
+        } else {
+          let termNotFoundMSG = ("(testing), Term Not Found in DB!");
+          message = termNotFoundMSG;
+          console.log("Term Not Matched DB Term Line 102");
+        } 
 
-       // let message = "Editing " + editTermEntered;
+        //Message to post back to user      
+        let params = {
+          channel: data.user.id,
+          text: message
+        };
 
-       // let params = {
-      //    channel: data.user.id,
-      //    text: message
-      //  };
-/*
-        try {
+        //Posts a message back to user from the bot
+        try{
           let val = await Bot.chat.postMessage(params);
           console.log(val);
         }
-        catch(error)
-        {
+        catch(error){
           console.error("Error in edit: ", error)
         }
-      */    
     } //end of else if
     break;
   } //end of switch block
