@@ -82,9 +82,49 @@ async function handleInterationEvent(data)
           console.error("Error in 1: ", error)
         }
       }
+
+    //Clay
+      else if (data.view.callback_id == "edit-term")
+      {
+        let lowerTerm = "test";
+        let editTermInput1 = data.view.state.values.editTermInput1.editTermEntered1.value;
+        console.log("pikaboo", editTermInput1);
+        console.log("GOT HERE IN EDIT");
+        let termReply = await queryDB(editTermInput1);
+        console.log("Successful termReply", termReply);
+
+        if (termReply.Item.RegName == "AWS"){
+          console.log("**woo**");
+        }/*
+        if(editTermInput1.toLowerCase() == queryDB(termInputEdit1.toLowerCase().RegName){
+          let termToEdit = termInputEdit;
+          chat.postMessage("Thanks! Edit was successful!");
+          console.log("Term Matched");
+        } else console.log("Term Not Found");
+        */
+       // console.log(termInput);
+       // console.log("Did that work?2");
+
+       // let message = "Editing " + editTermEntered;
+
+       // let params = {
+      //    channel: data.user.id,
+      //    text: message
+      //  };
+/*
+        try {
+          let val = await Bot.chat.postMessage(params);
+          console.log(val);
+        }
+        catch(error)
+        {
+          console.error("Error in edit: ", error)
+        }
+      */    
+    } //end of else if
     break;
-  }
-  
+  } //end of switch block
+
   // Return the response message
   return giveBack;
 }
@@ -103,12 +143,15 @@ async function handleSlashCommand(data)
   switch (command)
   {
     case "/testing":
-      
+    
       await postModal(data, modalData.getNameModal);
+      break;
+    case "/edit":
+      await postModal(data, modalData.editModal);
       break;
   }
 
-  // Resturn the response message
+  // Returns the response message
   return giveBack;
 }
 
