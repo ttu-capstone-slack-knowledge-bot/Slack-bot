@@ -84,8 +84,7 @@ async function handleInterationEvent(data)
       }
 
     //Clay
-      else if (data.view.callback_id == "edit-term")
-      {
+      else if (data.view.callback_id == "edit-term") {
         //var table = "termTable";
         let editTermInput1 = data.view.state.values.editTermInput1.editTermEntered1.value;
         //console.log("pikaboo", editTermInput1);
@@ -95,9 +94,6 @@ async function handleInterationEvent(data)
         let regTerm = termReply.Item.RegName;
         let message = "";
 
-        //if (termReply.Item.RegName == "AWS"){
-        //  console.log("**woo**");
-        //}
         if (editTermInput1 == regTerm){
           let desc = "";
           //console.log("Term Matched DB Term", editTermInput1, " = ", regTerm);
@@ -105,35 +101,23 @@ async function handleInterationEvent(data)
           message = termFoundMSG;
           let editTermInput2 = data.view.state.values.editTermInput2.editTermEntered2.value;
           desc = editTermInput2;
-          //sendToDB(regTerm, regDesc);
-          let x = await updateDesc(editTermInput1,desc);
-          //let response = updateDesc(editTermInput1, desc);
-          //await sendMessageToSlack(x, data, 2);
-          //await Bot.chat.postMessage(x);
-        }
-        /*
-        else {
-          let termNotFoundMSG = ("(testing), Term Not Found in DB!");
-          message = termNotFoundMSG;
-          console.log("Term Not Matched DB Term Line 102");
-        } 
 
-        //Message to post back to user      
-        let params = {
-          channel: data.user.id,
-          text: message
-        };
-
-        //Posts a message back to user from the bot
-        try{
-          let val = await Bot.chat.postMessage(params);
-          console.log(val);
-        }
-        catch(error){
-          console.error("Error in edit: ", error)
-        }
-        */
-    } //end of else if
+          let updateComplete = await updateDesc(editTermInput1,desc);
+          
+          let params = {
+            channel: data.user.id,
+            text: updateComplete
+          };
+        
+          try {
+              let val = await Bot.chat.postMessage(params);
+              console.log(val);
+          }
+          catch (error) {
+            console.error("Error posting message " + error);
+          }
+        } //end of nested if
+      } //end of else if
     break;
   } //end of switch block
 
@@ -488,13 +472,14 @@ async function getTagsForTerm(term)
   }
 }
 
-//Clay. Mirrored Ben's function. 
+//Clay. Used Ben's updateTag function. 
 async function updateDesc(term, newDesc)
 {
   let desc = newDesc;
   let name = term;
   let response = "";
   let result;
+  let sendback;
 
    const params = {
       TableName: termTable,
@@ -514,9 +499,9 @@ async function updateDesc(term, newDesc)
    result = await db.update(params).promise();
    if (result){
      console.log("Term Desc Updated Successfully");
-     response = name + " changed to " + desc;
    }
-   return response;
+   sendback = name + " changed to " + desc;
+   return sendback;
 }
 /*
   }
