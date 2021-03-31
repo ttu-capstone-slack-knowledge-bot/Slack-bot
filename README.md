@@ -10,7 +10,7 @@ Members:
 - Alison Rust
 - Alexander Clifford
 - Hannah Lafever
-- Clay Webb!
+- Clay Webb
 
 Current Bot Features:
 
