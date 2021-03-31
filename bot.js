@@ -64,10 +64,31 @@ async function handleInterationEvent(data)
       {
         let nameInput = data.view.state.values.nameInput.nameEntered.value;
         console.log(nameInput);
-        console.log("Did that work?");
 
         let message = "Thanks " + nameInput + ", nice to meet you!";
 
+        let params = {
+          channel: data.user.id,
+          text: message
+        };
+  
+        try {
+          let val = await Bot.chat.postMessage(params);
+          console.log(val);
+        }
+        catch (error)
+        {
+          console.error("Error in 1: ", error)
+        }
+      }
+      else if (data.view.callback_id = "deleteTerm")
+      {
+        let message = "";
+        let termToDelete = data.view.state.values.termInput.termEntered.value;
+        console.log(termToDelete);
+
+        message = await deleteTermFromDatabase(termToDelete);
+        
         let params = {
           channel: data.user.id,
           text: message
@@ -105,6 +126,11 @@ async function handleSlashCommand(data)
     case "/testing":
       
       await postModal(data, modalData.getNameModal);
+      break;
+
+    case "/delete":
+
+      await postModal(data, modalData.deleteTermModal);
       break;
   }
 
@@ -679,6 +705,54 @@ async function sendToDB(name, desc)
     console.error("THERE WAS AN ERROR: ", result);
   }
   console.log("Done adding item");
+}
+
+// Function to be used for deleting a term from the database.
+// Accepts the term, returns a string message based on if the term was deleted or not
+// Ben
+async function deleteTermFromDatabase(term)
+{
+  // Prepare the return variable
+  let message = "";
+
+  // First we gotta check if the term is even in the database
+  let define = await getDesc(term);
+
+  if (define == null)   // Term didn't exist in the database
+  {
+    message = "Sorry, I don't know that term. Guess I can't delete it!";
+  }
+  else if (define == -1)    // There was an error trying to find it
+  {
+    message = "Sorry, looks like there was an error finding that in the database. Please try again later.";
+    console.error("Error trying to delete a term.");
+  }
+  else  // Found the term
+  {    
+    // Prepare the payload to send to Dynamo
+    const deleteParams = {
+      TableName: termTable,
+      Key: {
+        LowerName: term.toLowerCase()
+      }
+    };
+
+    // Try deleteing the term!
+    try {
+      let result = await db.delete(deleteParams).promise();
+      console.log(result);
+      message = term + " has officially been deleted! I won't remember that term any more.";
+    }
+    catch (error)   // Uh oh, there was an error. Log it and notify the user.
+    {
+      console.error("There was an error deleting a term from the database.");
+      console.error(error);
+      message = "Sorry, there was an error deleting the term. Please try again later.";
+    }
+  }
+
+  // Return the message to be sent back to the user
+  return message;
 }
 
 // Function for sending messages to slack as the bot. This cleans up the previoius way by elimating the repative code.

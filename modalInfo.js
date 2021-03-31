@@ -170,5 +170,51 @@ module.exports = {
         ]
       }
     ]
+  },
+  deleteTermModal: {
+    "title": {
+      "type": "plain_text",
+      "text": "Delete a Term",
+      "emoji": true
+    },
+    "submit": {
+      "type": "plain_text",
+      "text": "Delete Term",
+      "emoji": true
+    },
+    "type": "modal",
+    "close": {
+      "type": "plain_text",
+      "text": "Cancel",
+      "emoji": true
+    },
+    "blocks": [
+      {
+        "type": "section",
+        "text": {
+          "type": "plain_text",
+          "text": "You are about to delete a term from my knowledge base! Make sure this is something you mean to do!",
+          "emoji": true
+        }
+      },
+      {
+        "type": "input",
+        "block_id": "termInput",
+        "element": {
+          "type": "plain_text_input",
+          "action_id": "termEntered",
+          "placeholder": {
+            "type": "plain_text",
+            "text": "Ex: AWS"
+          }
+        },
+        "label": {
+          "type": "plain_text",
+          "text": "Please type the term/acronym you want to delete?",
+          "emoji": true
+        }
+      }
+    ],
+    "callback_id": "deleteTerm"
   }
 }
