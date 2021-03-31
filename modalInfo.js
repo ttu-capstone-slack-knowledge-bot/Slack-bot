@@ -216,5 +216,35 @@ module.exports = {
       }
     ],
     "callback_id": "deleteTerm"
+  },
+  deleteTermConfirmationModal: {
+    "type": "modal",
+    "title": {
+      "type": "plain_text",
+      "text": "Delete Term Confirmation",
+      "emoji": true
+    },
+    "submit": {
+      "type": "plain_text",
+      "text": "Yes, delete the term",
+      "emoji": true
+    },
+    "close": {
+      "type": "plain_text",
+      "text": "Cancel",
+      "emoji": true
+    },
+    "blocks": [
+      {
+        "type": "section",
+        "text": {
+          "type": "plain_text",
+          "text": "Are you sure you want to delete the term ",
+          "emoji": true
+        }
+      }
+    ],
+    "private_metadata": "REPLACE_WITH_TERM",
+    "callback_id": "deleteTermConfirmation"
   }
 }

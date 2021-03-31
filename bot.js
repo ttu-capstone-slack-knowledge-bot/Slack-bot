@@ -78,10 +78,10 @@ async function handleInterationEvent(data)
         }
         catch (error)
         {
-          console.error("Error in 1: ", error)
+          console.error("Error in getName: ", error)
         }
       }
-      else if (data.view.callback_id = "deleteTerm")
+      else if (data.view.callback_id == "deleteTerm")
       {
         let message = "";
         let termToDelete = data.view.state.values.termInput.termEntered.value;
@@ -100,7 +100,27 @@ async function handleInterationEvent(data)
         }
         catch (error)
         {
-          console.error("Error in 1: ", error)
+          console.error("Error in deleteTerm: ", error)
+        }
+      }
+      else if (data.view.callback_id == "deleteTermConfirmation")
+      {
+        let termToDelete = data.view.private_metadata;
+        let message = await deleteTermFromDatabase(termToDelete);
+
+        let params = {
+          channel: data.user.id,
+          text: message
+        };
+  
+        try {
+          let val = await Bot.chat.postMessage(params);
+          console.log(val);
+        }
+        catch (error)
+        {
+          console.error("Error in deleteTermConfirmation")
+          console.error(error);
         }
       }
     break;
@@ -130,7 +150,46 @@ async function handleSlashCommand(data)
 
     case "/delete":
 
-      await postModal(data, modalData.deleteTermModal);
+      if (data.text === '')
+      {
+        await postModal(data, modalData.deleteTermModal);
+      }
+      else  // User sent a word with the slash command, so skip the modal
+      {
+        console.log("First line: " + data.text)
+        let extraText = data.text;
+        let word = '';
+
+        // Make sure that the text given is only one word. If it's more, then just cut it down to one word.
+        if (extraText.includes(' '))
+        {
+          word = extraText.slice(0, extraText.indexOf(' '));
+          console.log("Only first word: " + word);
+        }
+        else
+        {
+          word = extraText;
+          console.log("no space: " + word + " : " + extraText);
+        }
+
+        console.log("Word to Delete: " + word);
+        // "word" should now hold only one term, so lets delete it
+        // But we need to make sure this is what the user actually wants. So we're gonna slap them with a confirmation box.
+        let message = modalData.deleteTermConfirmationModal;
+        console.log("New object:");
+        console.log(message);
+
+        // So we need to put the term inside the message
+        message.blocks[0].text.text += (word + "?");
+
+        // Now put the word in the private_metadata field as well, so we'll know what to delete if the user hits yes
+        message.private_metadata = word;
+
+        // Now post the confirmation modal. If they click yes, then we'll handle it in the HandleInteractionEvent method.
+        console.log(message);
+
+        await postModal(data, JSON.stringify(message));
+      }
       break;
   }
 
