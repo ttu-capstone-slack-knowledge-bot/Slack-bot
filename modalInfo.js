@@ -171,8 +171,67 @@ module.exports = {
       }
     ]
   },
-
-  
+  editModal: {  //Clay
+    "type": "modal",
+    "submit": {
+      "type": "plain_text",
+      "text": "Submit",
+      "emoji": true
+    },
+    "close": {
+      "type": "plain_text",
+      "text": "Cancel",
+      "emoji": true
+    },
+    "title": {
+      "type": "plain_text",
+      "text": "Edit",
+      "emoji": true
+    },
+    "blocks": [
+      {
+        "type": "section",
+        "block_id": "editTermHeader",
+        "text": {
+          "type": "plain_text",
+          "text": ":pencil: Edit\n\nLet's edit a term.",
+          "emoji": true
+        }
+      }, //end of editHeader
+      {
+        "type": "divider"
+      },
+      {
+        "type": "input",
+        "block_id": "editTermInput1",
+        "label": {
+          "type": "plain_text",
+          "text": "What term are we changing?",
+          "emoji": true
+        },
+        "element": {
+          "type": "plain_text_input",
+          "action_id": "editTermEntered1"
+        },
+        "optional": false
+      }, //end of editTermInput1
+      {
+        "type": "input",
+        "block_id": "editTermInput2",
+        "label": {
+          "type": "plain_text",
+          "text": "What is the new definition?",
+          "emoji": true
+        },
+        "element": {
+          "type": "plain_text_input",
+          "action_id": "editTermEntered2"
+        },
+        "optional": false
+      } // end of editTermInput2
+    ],
+    "callback_id": "edit-term"
+  }, //end of editModal
   deleteTermModal: {
     "title": {
       "type": "plain_text",
