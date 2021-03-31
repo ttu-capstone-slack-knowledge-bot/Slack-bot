@@ -209,10 +209,8 @@ async function handleSlashCommand(data)
         console.log("Word to Delete: " + word);
         // "word" should now hold only one term, so lets delete it
         // But we need to make sure this is what the user actually wants. So we're gonna slap them with a confirmation box.
-        let message = modalData.deleteTermConfirmationModal;
-        console.log("New object:");
-        console.log(message);
-
+        let message = JSON.parse(JSON.stringify(modalData.deleteTermConfirmationModal));
+       
         // So we need to put the term inside the message
         message.blocks[0].text.text += (word + "?");
 
