@@ -123,9 +123,45 @@ async function handleInterationEvent(data)
           console.error(error);
         }
       }
+
+    //Clay
+      else if (data.view.callback_id == "edit-term") {
+        //var table = "termTable";
+        let editTermInput1 = data.view.state.values.editTermInput1.editTermEntered1.value;
+        //console.log("pikaboo", editTermInput1);
+        //console.log("GOT HERE IN EDIT");
+        let termReply = await queryDB(editTermInput1);
+        //console.log("Successful termReply", termReply.Item.RegName);
+        let regTerm = termReply.Item.RegName;
+        let message = "";
+
+        if (editTermInput1 == regTerm){
+          let desc = "";
+          //console.log("Term Matched DB Term", editTermInput1, " = ", regTerm);
+          let termFoundMSG = ("(testing) Term Found In DB!");
+          message = termFoundMSG;
+          let editTermInput2 = data.view.state.values.editTermInput2.editTermEntered2.value;
+          desc = editTermInput2;
+
+          let updateComplete = await updateDesc(editTermInput1,desc);
+          
+          let params = {
+            channel: data.user.id,
+            text: updateComplete
+          };
+        
+          try {
+              let val = await Bot.chat.postMessage(params);
+              console.log(val);
+          }
+          catch (error) {
+            console.error("Error posting message " + error);
+          }
+        } //end of nested if
+      } //end of else if
     break;
-  }
-  
+  } //end of switch block
+
   // Return the response message
   return giveBack;
 }
@@ -144,10 +180,8 @@ async function handleSlashCommand(data)
   switch (command)
   {
     case "/testing":
-      
       await postModal(data, modalData.getNameModal);
       break;
-
     case "/delete":
 
       if (data.text === '')
@@ -190,10 +224,14 @@ async function handleSlashCommand(data)
 
         await postModal(data, JSON.stringify(message));
       }
+
+      break;
+    case "/edit":
+      await postModal(data, modalData.editModal);
       break;
   }
 
-  // Resturn the response message
+  // Returns the response message
   return giveBack;
 }
 
@@ -517,6 +555,46 @@ async function getTagsForTerm(term)
     return null;
   }
 }
+
+//Clay. Used Ben's updateTag function. 
+async function updateDesc(term, newDesc)
+{
+  let desc = newDesc;
+  let name = term;
+  let response = "";
+  let result;
+  let sendback;
+
+   const params = {
+      TableName: termTable,
+      Key: {
+        LowerName: name.toLowerCase(),
+        //"Desc": desc
+      },
+      UpdateExpression: 'set #a = :x',
+      ExpressionAttributeNames: {
+        '#a' : 'Desc',
+      },
+      ExpressionAttributeValues: {
+        ':x' : desc
+      }
+    };
+
+   result = await db.update(params).promise();
+   if (result){
+     console.log("Term Desc Updated Successfully");
+   }
+   sendback = name + " changed to " + desc;
+   return sendback;
+}
+/*
+  }
+  catch (error)
+  {
+    console.error(error);
+    response = "Sorry, there was an error updating the database.";
+  }
+*/
 
 // Applys a list of tags to a given term
 // Ben
