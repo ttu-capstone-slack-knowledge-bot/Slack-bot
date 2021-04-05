@@ -171,67 +171,51 @@ module.exports = {
       }
     ]
   },
-  
-  //Clay
-  editModal: {
-    "type": "modal",
-    "submit": {
-      "type": "plain_text",
-      "text": "Submit",
-      "emoji": true
-    },
-    "close": {
-      "type": "plain_text",
-      "text": "Cancel",
-      "emoji": true
-    },
+  addTerm: {
     "title": {
       "type": "plain_text",
-      "text": "Edit",
-      "emoji": true
+      "text": "Add Term"
+    },
+    "submit": {
+      "type": "plain_text",
+      "text": "Submit"
     },
     "blocks": [
       {
-        "type": "section",
-        "block_id": "editTermHeader",
-        "text": {
+        "type": "input",
+        "block_id": "nameInput",
+        "element": {
+          "type": "plain_text_input",
+          "action_id": "nameEntered",
+          "placeholder": {
+            "type": "plain_text",
+            "text": " "
+          }
+        },
+        "label": {
           "type": "plain_text",
-          "text": ":pencil: Edit\n\nLet's edit a term.",
-          "emoji": true
+          "text": "Enter a term/acronym"
         }
-      }, //end of editHeader
-      {
-        "type": "divider"
       },
       {
         "type": "input",
-        "block_id": "editTermInput1",
-        "label": {
-          "type": "plain_text",
-          "text": "What term are we changing?",
-          "emoji": true
-        },
+        "block_id": "descInput",
         "element": {
           "type": "plain_text_input",
-          "action_id": "editTermEntered1"
+          "action_id": "descEntered",
+          "multiline": true,
+          "placeholder": {
+            "type": "plain_text",
+            "text": " "
+          }
         },
-        "optional": false
-      }, //end of editTermInput1
-      {
-        "type": "input",
-        "block_id": "editTermInput2",
         "label": {
           "type": "plain_text",
-          "text": "What is the new definition?",
-          "emoji": true
-        },
-        "element": {
-          "type": "plain_text_input",
-          "action_id": "editTermEntered2"
-        },
-        "optional": false
-      } // end of editTermInput2
+          "text": "Enter a definition"
+        }
+      }
     ],
-    "callback_id": "edit-term"
-  } //end of editModal
+    "type": "modal",
+    "callback_id": "addTerm"
+  }
 }

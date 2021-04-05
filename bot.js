@@ -79,48 +79,64 @@ async function handleInterationEvent(data)
         }
         catch (error)
         {
-          console.error("Error in 1: ", error)
+          console.error("Error in 1: ", error);
         }
-      }
+      } else if (data.view.callback_id == "addTerm")
+      {
+        let nameInput = data.view.state.values.nameInput.nameEntered.value;
+        let descInput = data.view.state.values.descInput.descEntered.value;
 
-    //Clay
-      else if (data.view.callback_id == "edit-term") {
-        //var table = "termTable";
-        let editTermInput1 = data.view.state.values.editTermInput1.editTermEntered1.value;
-        //console.log("pikaboo", editTermInput1);
-        //console.log("GOT HERE IN EDIT");
-        let termReply = await queryDB(editTermInput1);
-        //console.log("Successful termReply", termReply.Item.RegName);
-        let regTerm = termReply.Item.RegName;
-        let message = "";
+        let checkIfExists = await getDesc(nameInput);
+        console.log(checkIfExists);
+        
+        if (checkIfExists == null) 
+        {
+          await sendToDB(nameInput, descInput)
 
-        if (editTermInput1 == regTerm){
-          let desc = "";
-          //console.log("Term Matched DB Term", editTermInput1, " = ", regTerm);
-          let termFoundMSG = ("(testing) Term Found In DB!");
-          message = termFoundMSG;
-          let editTermInput2 = data.view.state.values.editTermInput2.editTermEntered2.value;
-          desc = editTermInput2;
+          let message = "The term " + nameInput + " has been added to the database";
+          console.log(data);
 
-          let updateComplete = await updateDesc(editTermInput1,desc);
-          
           let params = {
             channel: data.user.id,
-            text: updateComplete
+            text: message
           };
-        
+    
           try {
-              let val = await Bot.chat.postMessage(params);
-              console.log(val);
+            let val = await Bot.chat.postMessage(params);
+            console.log(val);
           }
-          catch (error) {
-            console.error("Error posting message " + error);
+          catch (error)
+          {
+            console.error("Error in 1: ", error);
           }
-        } //end of nested if
-      } //end of else if
-    break;
-  } //end of switch block
+        }
+        else 
+        {
+          let message = "The term " + nameInput + " already exists in the database";
 
+          let params = {
+            channel: data.user.id,
+            text: message
+          };
+    
+          try {
+            let val = await Bot.chat.postMessage(params);
+            console.log(val);
+          }
+          catch (error)
+          {
+            console.error("Error in 2: ", error);
+          }
+        }
+      } 
+    
+    break;
+
+    case "shortcut":
+      await postModal(data, modalData.helpModal);
+    break;
+  }
+  
   // Return the response message
   return giveBack;
 }
@@ -138,16 +154,93 @@ async function handleSlashCommand(data)
 
   switch (command)
   {
-    case "/testing":
-    
+    case "/modal":
+      
       await postModal(data, modalData.getNameModal);
       break;
-    case "/edit":
-      await postModal(data, modalData.editModal);
+
+    case "/add":
+
+      if(data.text != "") {
+        let addTermRE = /(?<name>[a-zA-Z0-9 ]{1,})(:) (?<desc>[_a-zA-Z0-9-]{1,})/i; // Will match anything in form of "term: desc"
+
+        if (data.text.search(addTermRE) != -1) {
+          const matchArray = data.text.match(addTermRE); // will return an array with the groups from the regEx
+          let nameInput = matchArray.groups.name;  // This will hold the name the user wishes to add
+          let descInput = matchArray.groups.desc;   // This will hold the definition the user wishes to add
+
+          let checkIfExists = await getDesc(nameInput);
+          console.log(checkIfExists);
+          
+          if (checkIfExists == null) 
+          {
+            await sendToDB(nameInput, descInput)
+            
+            let message = "The term " + nameInput + " has been added to the database";
+
+            let params = {
+              channel: data.user_id,
+              text: message
+            };
+      
+            try {
+              let val = await Bot.chat.postMessage(params);
+              console.log(val);
+            }
+            catch (error)
+            {
+              console.error("Error in 1: ", error);
+            }
+          }
+          else 
+          {
+            let message = "The term " + nameInput + " already exists in the database";
+
+            let params = {
+              channel: data.user_id,
+              text: message
+            };
+      
+            try {
+              let val = await Bot.chat.postMessage(params);
+              console.log(val);
+            }
+            catch (error)
+            {
+              console.error("Error in 2: ", error);
+            }
+          }
+        } 
+        else 
+        {
+          let message = "Incorrect formatting. Please use \"/add\" OR \"/add term: definition\"";
+
+          let params = {
+            channel: data.user_id,
+            text: message
+          };
+    
+          try {
+            let val = await Bot.chat.postMessage(params);
+            console.log(val);
+          }
+          catch (error)
+          {
+            console.error("Error in 1: ", error);
+          }
+        } 
+        break;
+      } 
+      else
+      {
+        console.log("Text not there");
+        await postModal(data, modalData.addTerm);
+      }
+
       break;
   }
 
-  // Returns the response message
+  // Resturn the response message
   return giveBack;
 }
 
@@ -337,16 +430,30 @@ async function handleEvent(data)
 
         try
         {
-          let startIndex = data.event.text.indexOf("add") + 4;
-          let fullString = data.event.text.slice(startIndex);
-          let splitIndex = fullString.indexOf(':');
-          let newTerm = fullString.slice(0, splitIndex - 1);
-          let newDef = fullString.slice(splitIndex+2, data.event.text.length);
+          //let addRE = /(add) (?<term>[a-zA-Z0-9 ]{1,}) : (?<desc>[a-zA-Z0-9 ]{1,}) /i; 
+          //if fullString matches addRE
+            //add it
+          //else
+            //send message that format is incorrect w/ example
+          //if (data.event.text.search(addRE) != -1) 
+         // {
+            //console.log("Correct format");
+            let startIndex = data.event.text.indexOf("add") + 4;
+            let fullString = data.event.text.slice(startIndex);
+            let splitIndex = fullString.indexOf(':');
+            let newTerm = fullString.slice(0, splitIndex - 1);
+            let newDef = fullString.slice(splitIndex+2, data.event.text.length);
 
-          await sendMessageToSlack("Adding item to the database...", data, 1);
-          await sendToDB(newTerm, newDef);
-          await sendMessageToSlack("The item has been added", data, 1);
-  
+            await sendMessageToSlack("Adding item to the database...", data, 1);
+            await sendToDB(newTerm, newDef);
+            await sendMessageToSlack("The item has been added", data, 1);
+          /*}
+          else
+          {
+            console.log("Incorrect format");
+            await sendMessageToSlack("Incorrect formatting, please use", data, 1);
+            await sendMessageToSlack("add term : desc", data, 1);
+          }*/
         }
         catch (error)
         {
@@ -471,46 +578,6 @@ async function getTagsForTerm(term)
     return null;
   }
 }
-
-//Clay. Used Ben's updateTag function. 
-async function updateDesc(term, newDesc)
-{
-  let desc = newDesc;
-  let name = term;
-  let response = "";
-  let result;
-  let sendback;
-
-   const params = {
-      TableName: termTable,
-      Key: {
-        LowerName: name.toLowerCase(),
-        //"Desc": desc
-      },
-      UpdateExpression: 'set #a = :x',
-      ExpressionAttributeNames: {
-        '#a' : 'Desc',
-      },
-      ExpressionAttributeValues: {
-        ':x' : desc
-      }
-    };
-
-   result = await db.update(params).promise();
-   if (result){
-     console.log("Term Desc Updated Successfully");
-   }
-   sendback = name + " changed to " + desc;
-   return sendback;
-}
-/*
-  }
-  catch (error)
-  {
-    console.error(error);
-    response = "Sorry, there was an error updating the database.";
-  }
-*/
 
 // Applys a list of tags to a given term
 // Ben
