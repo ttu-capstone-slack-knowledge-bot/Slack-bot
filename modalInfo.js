@@ -233,5 +233,55 @@ module.exports = {
       } // end of editTermInput2
     ],
     "callback_id": "edit-term"
-  } //end of editModal
+  }, //end of editModal
+
+
+  //Hannah
+  addTerm: {
+    "title": {
+      "type": "plain_text",
+      "text": "Add Term"
+    },
+    "submit": {
+      "type": "plain_text",
+      "text": "Submit"
+    },
+    "blocks": [
+      {
+        "type": "input",
+        "block_id": "nameInput",
+        "element": {
+          "type": "plain_text_input",
+          "action_id": "nameEntered",
+          "placeholder": {
+            "type": "plain_text",
+            "text": " "
+          }
+        },
+        "label": {
+          "type": "plain_text",
+          "text": "Enter a term/acronym"
+        }
+      },
+      {
+        "type": "input",
+        "block_id": "descInput",
+        "element": {
+          "type": "plain_text_input",
+          "action_id": "descEntered",
+          "multiline": true,
+          "placeholder": {
+            "type": "plain_text",
+            "text": " "
+          }
+        },
+        "label": {
+          "type": "plain_text",
+          "text": "Enter a definition"
+        }
+      }
+    ],
+    "type": "modal",
+    "callback_id": "addTerm"
+  }
 }
