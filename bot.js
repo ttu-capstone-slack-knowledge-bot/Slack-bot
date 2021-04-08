@@ -243,7 +243,6 @@ async function handleEvent(data)
       let tagTermRE = /(tag) (?<term>[a-zA-Z0-9 ]{1,}) (with) (?<tag>[_a-zA-Z0-9-]{1,})/i; // Will match anything in form of "Tag __ with ___."
       let lookForTagRE = /(terms|acronyms) [a-zA-Z ]*(tagged with) (?<tag>[_a-zA-Z-]{1,})/i;  // Will match anything in the form of "... tagged with ___"
       let editTermRE = /(edit) (?<term>[\w]{1,}) (with) (?<desc>[\w ]+)/i; //TESTING edit. @Bot edit term with desc. 
-      //let lowerCaseDataInput = data.event.text.toLowerCase();
 
       if (data.event.text.search(askForTermRE) != -1) // What does __ mean?
       {
