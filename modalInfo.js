@@ -203,7 +203,7 @@ module.exports = {
       {
         "type": "divider"
       },
-      {
+      { //TERM  INPUT
         "type": "input",
         "block_id": "editTermInput1",
         "label": {
@@ -215,9 +215,13 @@ module.exports = {
           "type": "plain_text_input",
           "action_id": "editTermEntered1"
         },
-        "optional": false
+        "optional": false,
+        //"repsonse_action": "errors",
+        //  "errors":{
+        //    "editTermInput1": "Boo"
+         // }
       }, //end of editTermInput1
-      {
+      { //DESC INPUT
         "type": "input",
         "block_id": "editTermInput2",
         "label": {

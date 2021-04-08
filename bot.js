@@ -50,14 +50,6 @@ async function handleInterationEvent(data)
     body: ""
   }
 
-  let notFound = {
-    statusCode: 404,
-    reponse_action: "errors",
-    "errors": {
-      "edit-term": "Term Not found"
-    } 
-  }
-
   const interaction = data.type;
 
   switch (interaction)
@@ -93,19 +85,14 @@ async function handleInterationEvent(data)
 
     //Clay
       else if (data.view.callback_id == "edit-term") {
-        //var table = "termTable";
+
         let editTermInput1 = data.view.state.values.editTermInput1.editTermEntered1.value;
-        //console.log("pikaboo", editTermInput1);
-        //console.log("GOT HERE IN EDIT");
         let termReply = await queryDB(editTermInput1);
-        //let notFound = "sorry, that term doesn't exist";
-        //console.log("Successful termReply", termReply.Item.RegName);
         let regTerm = termReply.Item.RegName;
         let message = "";        
      
         if (editTermInput1 == regTerm){
           let desc = "";
-          //console.log("Term Matched DB Term", editTermInput1, " = ", regTerm);
           let termFoundMSG = ("(testing) Term Found In DB!");
           message = termFoundMSG;
           let editTermInput2 = data.view.state.values.editTermInput2.editTermEntered2.value;
@@ -148,18 +135,53 @@ async function handleSlashCommand(data)
 
   switch (command)
   {
-    case "/testing":
-    
+    case "/testing":    
       await postModal(data, modalData.getNameModal);
       break;
-    case "/edit":
-      await postModal(data, modalData.editModal);
-      break;
-  }
 
-  // Returns the response message
+    case "/edit":
+    
+      if (data.text == ("" || '')){
+        await postModal(data, modalData.editModal);
+      }
+      else if (data.text != ("" || '')){
+        let editTermRE = /(edit) (?<term>[\w]{1,}) (with) (?<desc>[\w ]+)/i; //TESTING edit. @Bot edit term with desc. 
+        //if (data.event.text.search(editTermRE) != -1) {
+        console.log ("Shotcut command used (edit)");
+
+        const matchArray = data.text.match(editTermRE); // will return an array with the groups from the regEx
+        let wordToEdit = matchArray.groups.term;  // This will hold the term the user wishes to edit
+        let descToApply = matchArray.groups.desc; // This will hold the desc the user wishes to apply
+        let response = "";
+
+        let termExists = await getDesc(wordToEdit);
+        if (termExists == null) // Term doesn't exist
+        {
+          response = "Sorry, that term doesn't exist yet, so I can't edit it.";
+        }
+        else if (termExists == -1) // There was some sort of database error
+        {
+          response = "Sorry, there was an error trying to retrieve the term.";
+        }
+        else // Term exists, so apply the new description.
+        {
+          //console.log("Tag exists: Entering applyTagToTerm");
+          response = await updateDesc(wordToEdit, descToApply);
+          console.log("Testing: Sucessfully updated term using shortcut.");
+        }
+
+        // Give the response back to the user in a thread.
+        await sendMessageToSlack(response, data, 1);
+        //}
+       // else {
+       //   console.log("Error: Term update failed");
+       // }
+      } 
+      break; //out of edit
+  } // end of switch 
+
   return giveBack;
-}
+} // end of slash function
 
 // Not really a fan of this, but I didn't know how else to do this without changing the whole handleEvent function and making it messy.
 async function handleMessage(data, bigData)
@@ -271,8 +293,6 @@ async function handleEvent(data)
           response = "Sorry, I don't know that yet.";
 
           // This might be a good spot for asking if they'd like to add the term to the database.
-          
-
         } else if (desc == -1) {
           // Database responded with an error. 
           response = wordToFind +  "Sorry, there was an error.";
