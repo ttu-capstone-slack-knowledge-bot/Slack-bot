@@ -85,16 +85,18 @@ async function handleInterationEvent(data)
 
     //Clay
       else if (data.view.callback_id == "edit-term") {
-        var table = "termTable";
+        //var table = "termTable";
         let editTermInput1 = data.view.state.values.editTermInput1.editTermEntered1.value;
-        console.log("Successfully grabbed input: ", editTermInput1);
+        //console.log("pikaboo", editTermInput1);
+        //console.log("GOT HERE IN EDIT");
         let termReply = await queryDB(editTermInput1);
+        //console.log("Successful termReply", termReply.Item.RegName);
         let regTerm = termReply.Item.RegName;
-        //let message = "";
+        let message = "";
 
         if (editTermInput1 == regTerm){
           let desc = "";
-          console.log("Term Entered Matched DB Term: ", editTermInput1, " = ", regTerm);
+          //console.log("Term Matched DB Term", editTermInput1, " = ", regTerm);
           let termFoundMSG = ("(testing) Term Found In DB!");
           message = termFoundMSG;
           let editTermInput2 = data.view.state.values.editTermInput2.editTermEntered2.value;
@@ -242,7 +244,6 @@ async function handleEvent(data)
       let askForTermRE = /(what does) (?<term>[a-zA-Z0-9 ]{1,}) (mean|stand for)/i;  // Will match anything in the form of "what does ___ mean/stand for"
       let tagTermRE = /(tag) (?<term>[a-zA-Z0-9 ]{1,}) (with) (?<tag>[_a-zA-Z0-9-]{1,})/i; // Will match anything in form of "Tag __ with ___."
       let lookForTagRE = /(terms|acronyms) [a-zA-Z ]*(tagged with) (?<tag>[_a-zA-Z-]{1,})/i;  // Will match anything in the form of "... tagged with ___"
-      let editTermRE = /(edit) (?<term>[\w]{1,}) (with) (?<desc>[\w ]+)/i; //TESTING edit. @Bot edit term with desc. 
 
       if (data.event.text.search(askForTermRE) != -1) // What does __ mean?
       {
@@ -308,34 +309,6 @@ async function handleEvent(data)
         let response = "";
 
         response = await findTermsWithTag(tagToFind);
-        await sendMessageToSlack(response, data, 1);
-      }
-      else if (data.event.text.search(editTermRE) != -1) // edit ____ with ____
-      {
-        console.log("Shortcut command used (edit)");
-      
-        const matchArray = data.event.text.match(editTermRE); // will return an array with the groups from the regEx
-        let wordToEdit = matchArray.groups.term;  // This will hold the term the user wishes to edit
-        let descToApply = matchArray.groups.desc; // This will hold the desc the user wishes to apply
-        let response = "";
-
-        let termExists = await getDesc(wordToEdit);
-        if (termExists == null) // Term doesn't exist
-        {
-          response = "Sorry, that term doesn't exist yet, so I can't edit it.";
-        }
-        else if (termExists == -1) // There was some sort of database error
-        {
-          response = "Sorry, there was an error trying to retrieve the term.";
-        }
-        else // Term exists, so apply the new description.
-        {
-          //console.log("Tag exists: Entering applyTagToTerm");
-          response = await updateDesc(wordToEdit, descToApply);
-          console.log("Testing: Sucessfully updated term using shortcut.");
-        }
-
-        // Give the response back to the user in a thread.
         await sendMessageToSlack(response, data, 1);
       }
       else if (data.event.text.includes(" hello") || data.event.text.includes(" hi"))
@@ -504,7 +477,7 @@ async function updateDesc(term, newDesc)
 {
   let desc = newDesc;
   let name = term;
-  //let response = "";
+  let response = "";
   let result;
   let sendback;
 
