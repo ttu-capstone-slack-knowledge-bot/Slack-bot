@@ -183,7 +183,6 @@ async function handleSlashCommand(data)
       await postModal(data, modalData.getNameModal);
       break;
     case "/delete":
-
       if (data.text === '')
       {
         await postModal(data, modalData.deleteTermModal);
