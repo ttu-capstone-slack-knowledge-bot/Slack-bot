@@ -50,6 +50,14 @@ async function handleInterationEvent(data)
     body: ""
   }
 
+  let notFound = {
+    statusCode: 404,
+    reponse_action: "errors",
+    "errors": {
+      "edit-term": "Term Not found"
+    } 
+  }
+
   const interaction = data.type;
 
   switch (interaction)
@@ -90,10 +98,11 @@ async function handleInterationEvent(data)
         //console.log("pikaboo", editTermInput1);
         //console.log("GOT HERE IN EDIT");
         let termReply = await queryDB(editTermInput1);
+        //let notFound = "sorry, that term doesn't exist";
         //console.log("Successful termReply", termReply.Item.RegName);
         let regTerm = termReply.Item.RegName;
-        let message = "";
-
+        let message = "";        
+     
         if (editTermInput1 == regTerm){
           let desc = "";
           //console.log("Term Matched DB Term", editTermInput1, " = ", regTerm);
@@ -117,8 +126,9 @@ async function handleInterationEvent(data)
             console.error("Error posting message " + error);
           }
         } //end of nested if
+        
       } //end of else if
-    break;
+    break; // break out of case statement Edit Term
   } //end of switch block
 
   // Return the response message
