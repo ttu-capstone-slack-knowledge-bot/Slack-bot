@@ -62,6 +62,7 @@ async function handleInterationEvent(data)
 
       if (data.view.callback_id == "getName")
       {
+        // This is just a tester function. We can clear it out later.
         let nameInput = data.view.state.values.nameInput.nameEntered.value;
         console.log(nameInput);
 
@@ -123,7 +124,6 @@ async function handleInterationEvent(data)
           console.error(error);
         }
       }
-
     //Clay
       else if (data.view.callback_id == "edit-term") {
         //var table = "termTable";
