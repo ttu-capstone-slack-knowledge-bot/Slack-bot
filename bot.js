@@ -137,47 +137,88 @@ async function handleSlashCommand(data)
   {
     case "/testing":    
       await postModal(data, modalData.getNameModal);
-      break;
+    break; // out of testing
 
-    case "/edit":
-    
+    case "/edit":    
       if (data.text == ("" || '')){
         await postModal(data, modalData.editModal);
       }
       else if (data.text != ("" || '')){
-        let editTermRE = /(edit) (?<term>[\w]{1,}) (with) (?<desc>[\w ]+)/i; //TESTING edit. @Bot edit term with desc. 
+        let editTermRE = /(?<term>[\w]{1,}) (with) (?<desc>[\w ]+)/i; //TESTING edit. @Bot edit term with desc. 
+        let response = "";
         //if (data.event.text.search(editTermRE) != -1) {
         console.log ("Shotcut command used (edit)");
 
         const matchArray = data.text.match(editTermRE); // will return an array with the groups from the regEx
         let wordToEdit = matchArray.groups.term;  // This will hold the term the user wishes to edit
         let descToApply = matchArray.groups.desc; // This will hold the desc the user wishes to apply
-        let response = "";
+        
 
-        let termExists = await getDesc(wordToEdit);
+        let termExists = await getDesc(wordToEdit); // Store data in termExists if the term is in the DB
         if (termExists == null) // Term doesn't exist
         {
           response = "Sorry, that term doesn't exist yet, so I can't edit it.";
+
+          let params = {
+            channel: data.user_id,
+            text: response
+          };
+
+          try {
+            let val = await Bot.chat.postMessage(params);
+            console.log(val);
+          }
+          catch (error)
+          {
+            console.error("Error in 1: ", error);
+          }
         }
         else if (termExists == -1) // There was some sort of database error
         {
           response = "Sorry, there was an error trying to retrieve the term.";
+
+          let params = {
+            channel: data.user_id,
+            text: response
+          };
+
+          try {
+            let val = await Bot.chat.postMessage(params);
+            console.log(val);
+          }
+          catch (error)
+          {
+            console.error("Error in 1: ", error);
+          }
         }
         else // Term exists, so apply the new description.
         {
           //console.log("Tag exists: Entering applyTagToTerm");
-          response = await updateDesc(wordToEdit, descToApply);
+          response = await updateDesc(wordToEdit, descToApply); //returns "___ is now ____" if the wordToEdit is found.
           console.log("Testing: Sucessfully updated term using shortcut.");
+          let params = {
+            channel: data.user_id,
+            text: response
+          };
+
+          try {
+            let val = await Bot.chat.postMessage(params);
+            console.log(val);
+          }
+          catch (error)
+          {
+            console.error("Error in 1: ", error);
+          }
         }
 
         // Give the response back to the user in a thread.
-        await sendMessageToSlack(response, data, 1);
+        //await sendMessageToSlack(params, data, 1);
         //}
-       // else {
-       //   console.log("Error: Term update failed");
-       // }
+        // else {
+        //   console.log("Error: Term update failed");
+        // }
       } 
-      break; //out of edit
+    break; //out of edit
   } // end of switch 
 
   return giveBack;
