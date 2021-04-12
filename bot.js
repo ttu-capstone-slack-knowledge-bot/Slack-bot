@@ -222,7 +222,7 @@ async function handleSlashCommand(data)
         // Now post the confirmation modal. If they click yes, then we'll handle it in the HandleInteractionEvent method.
         console.log(message);
 
-        await postModal(data, JSON.stringify(message));
+        await postModal(data, message);
       }
 
       break;
