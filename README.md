@@ -23,6 +23,7 @@ Make sure to add these in your personal bot to make sure you can use all the cur
 
 - /testing - just a simple slash command to make sure modals and stuff work. Will probably take out soon.
 - /edit - Edits a term's definition in the database.
+- /add - Adds a term to the database
 
 Programming Guidelines/Practices:
 
