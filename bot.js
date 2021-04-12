@@ -195,62 +195,25 @@ async function handleSlashCommand(data)
       await postModal(data, modalData.editModal);
       break;
 
-      case "/add":
+    case "/add":
 
-        if(data.text != "") {
-          let addTermRE = /(?<name>[a-zA-Z0-9 ]{1,})(:) (?<desc>[_a-zA-Z0-9-]{1,})/i; // Will match anything in form of "term: desc"
-  
-          if (data.text.search(addTermRE) != -1) {
-            const matchArray = data.text.match(addTermRE); // will return an array with the groups from the regEx
-            let nameInput = matchArray.groups.name;  // This will hold the name the user wishes to add
-            let descInput = matchArray.groups.desc;   // This will hold the definition the user wishes to add
-  
-            let checkIfExists = await getDesc(nameInput);
-            console.log(checkIfExists);
-            
-            if (checkIfExists == null) 
-            {
-              await sendToDB(nameInput, descInput)
-              
-              let message = "The term " + nameInput + " has been added to the database";
-  
-              let params = {
-                channel: data.user_id,
-                text: message
-              };
-        
-              try {
-                let val = await Bot.chat.postMessage(params);
-                console.log(val);
-              }
-              catch (error)
-              {
-                console.error("Error in 1: ", error);
-              }
-            }
-            else 
-            {
-              let message = "The term " + nameInput + " already exists in the database";
-  
-              let params = {
-                channel: data.user_id,
-                text: message
-              };
-        
-              try {
-                let val = await Bot.chat.postMessage(params);
-                console.log(val);
-              }
-              catch (error)
-              {
-                console.error("Error in 2: ", error);
-              }
-            }
-          } 
-          else 
+      if(data.text != "") {
+        let addTermRE = /(?<name>[a-zA-Z0-9 ]{1,})(:) (?<desc>[_a-zA-Z0-9-]{1,})/i; // Will match anything in form of "term: desc"
+
+        if (data.text.search(addTermRE) != -1) {
+          const matchArray = data.text.match(addTermRE); // will return an array with the groups from the regEx
+          let nameInput = matchArray.groups.name;  // This will hold the name the user wishes to add
+          let descInput = matchArray.groups.desc;   // This will hold the definition the user wishes to add
+
+          let checkIfExists = await getDesc(nameInput);
+          console.log(checkIfExists);
+          
+          if (checkIfExists == null) 
           {
-            let message = "Please use \"/add\" OR \"/add term: definition\"";
-  
+            await sendToDB(nameInput, descInput)
+            
+            let message = "The term " + nameInput + " has been added to the database";
+
             let params = {
               channel: data.user_id,
               text: message
@@ -264,16 +227,53 @@ async function handleSlashCommand(data)
             {
               console.error("Error in 1: ", error);
             }
-          } 
-          break;
+          }
+          else 
+          {
+            let message = "The term " + nameInput + " already exists in the database";
+
+            let params = {
+              channel: data.user_id,
+              text: message
+            };
+      
+            try {
+              let val = await Bot.chat.postMessage(params);
+              console.log(val);
+            }
+            catch (error)
+            {
+              console.error("Error in 2: ", error);
+            }
+          }
         } 
-        else
+        else 
         {
-          console.log("Text not there");
-          await postModal(data, modalData.addTerm);
-        }
-  
+          let message = "Please use \"/add\" OR \"/add term: definition\"";
+
+          let params = {
+            channel: data.user_id,
+            text: message
+          };
+    
+          try {
+            let val = await Bot.chat.postMessage(params);
+            console.log(val);
+          }
+          catch (error)
+          {
+            console.error("Error in 1: ", error);
+          }
+        } 
         break;
+      } 
+      else
+      {
+        console.log("Text not there");
+        await postModal(data, modalData.addTerm);
+      }
+
+      break;
   }
 
   // Returns the response message
