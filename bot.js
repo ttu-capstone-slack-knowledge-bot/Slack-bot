@@ -189,7 +189,7 @@ async function handleSlashCommand(data)
       case "/add":
 
         if(data.text != "") {
-          let addTermRE = /(?<name>[a-zA-Z0-9 ]{1,})(:) (?<desc>[_a-zA-Z0-9-]{1,})/i; // Will match anything in form of "term: desc"
+          let addTermRE = /(?<name>[a-zA-Z0-9 ]{1,})(:) (?<desc>[_a-zA-Z0-9 -]{1,})/i; // Will match anything in form of "term: desc"
   
           if (data.text.search(addTermRE) != -1) {
             const matchArray = data.text.match(addTermRE); // will return an array with the groups from the regEx
@@ -346,7 +346,7 @@ async function handleSlashCommand(data)
         // }
       } 
     break; //out of edit
-
+    }
   return giveBack;
 } // end of slash function
 

@@ -3,16 +3,30 @@ module.exports = {
     "type": "modal",
     "title": {
       "type": "plain_text",
-      "text": "FIRST MODAL",
+      "text": "My App",
+      "emoji": true
+    },
+    "submit": {
+      "type": "plain_text",
+      "text": "Awesome",
+      "emoji": true
+    },
+    "close": {
+      "type": "plain_text",
+      "text": "Whatever",
       "emoji": true
     },
     "blocks": [
       {
         "type": "section",
         "text": {
-          "type": "plain_text",
-          "text": "HEY! I'M A FRICKEN MODAL!",
-          "emoji": true
+          "type": "mrkdwn",
+          "text": "HEY! I'M A FRICKEN MODAL!"
+        },
+        "accessory": {
+          "type": "image",
+          "image_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSSjriUQ6OtX5mGR9OVsfepnvFP9Szvw3XIIA&usqp=CAU",
+          "alt_text": "cute cat"
         }
       }
     ]
@@ -171,7 +185,6 @@ module.exports = {
       }
     ]
   },
-  
   //Clay
   editModal: {
     "type": "modal",
@@ -238,8 +251,6 @@ module.exports = {
     ],
     "callback_id": "edit-term"
   }, //end of editModal
-
-
   //Hannah
   addTerm: {
     "title": {
