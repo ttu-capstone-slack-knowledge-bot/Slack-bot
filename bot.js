@@ -130,9 +130,29 @@ async function handleInterationEvent(data)
         let editTermInput1 = data.view.state.values.editTermInput1.editTermEntered1.value;
         let termReply = await queryDB(editTermInput1);
         let regTerm = termReply.Item.RegName;
-        let message = "";        
+        let message = "";   
+        let params;     
      
-        if (editTermInput1 == regTerm){
+        let define = await getDesc(editTermInput1);
+
+        if (define == null)   // Term didn't exist in the database
+        {
+          message = "Sorry, I don't know that term. Guess I can't edit it!";
+          params = {
+            channel: data.user.id,
+            text: message
+          };
+        }
+        else if (define == -1)    // There was an error trying to find it
+        {
+          message = "Sorry, looks like there was an error finding that in the database. Please try again later.";
+          console.error("Error trying to edit a term.");
+          params = {
+            channel: data.user.id,
+            text: message
+          };
+        }
+        else if (editTermInput1 == regTerm){
           let desc = "";
           let termFoundMSG = ("(testing) Term Found In DB!");
           message = termFoundMSG;
@@ -141,7 +161,7 @@ async function handleInterationEvent(data)
 
           let updateComplete = await updateDesc(editTermInput1,desc);
           
-          let params = {
+          params = {
             channel: data.user.id,
             text: updateComplete
           };
@@ -366,7 +386,24 @@ async function handleSlashCommand(data)
         let wordToEdit = matchArray.groups.term;  // This will hold the term the user wishes to edit
         let descToApply = matchArray.groups.desc; // This will hold the desc the user wishes to apply
         
+        response = editTermInDatabase(worldToEdit, discToApply)
 
+        //Notify the user if the term was updated or if it failed
+        let params = {
+          channel: data.user_id,
+          text: response
+        };
+
+        try {
+          let val = await Bot.chat.postMessage(params);
+          console.log(val);
+        }
+        catch (error)
+        {
+          console.error("Error in 1: ", error);
+        }
+      
+/*
         let termExists = await getDesc(wordToEdit); // Store data in termExists if the term is in the DB
         if (termExists == null) // Term doesn't exist
         {
@@ -423,6 +460,7 @@ async function handleSlashCommand(data)
             console.error("Error in 1: ", error);
           }
         }
+*/
 
         // Give the response back to the user in a thread.
         //await sendMessageToSlack(params, data, 1);
@@ -1102,6 +1140,55 @@ async function deleteTermFromDatabase(term)
       console.error("There was an error deleting a term from the database.");
       console.error(error);
       message = "Sorry, there was an error deleting the term. Please try again later.";
+    }
+  }
+
+  // Return the message to be sent back to the user
+  return message;
+}
+
+
+// Function to be used for editing a term in the database.
+// Accepts the term, returns a string message based on if the term was edited or not.
+// Clay. Modified Bens.
+async function editTermInDatabase(term, desc)
+{
+  // Prepare the return variable
+  let message = "";
+
+  // First we gotta check if the term is even in the database
+  let define = await getDesc(term);
+
+  if (define == null)   // Term didn't exist in the database
+  {
+    message = "Sorry, I don't know that term. Guess I can't edit it!";
+  }
+  else if (define == -1)    // There was an error trying to find it
+  {
+    message = "Sorry, looks like there was an error finding that in the database. Please try again later.";
+    console.error("Error trying to edit a term.");
+  }
+  else  // Found the term
+  {    
+    // Prepare the payload to send to Dynamo
+    const editParams = {
+      TableName: termTable,
+      Key: {
+        LowerName: term.toLowerCase()
+      }
+    };
+
+    // Try editing the term!
+    try {
+      message = await updateDesc(editTermInput1,desc);
+      console.log(result);
+      //message = term + " has officially been edited!";
+    }
+    catch (error)   // Uh oh, there was an error. Log it and notify the user.
+    {
+      console.error("There was an error editing a term from the database.");
+      console.error(error);
+      message = "Sorry, there was an error editing the term. Please try again later.";
     }
   }
 
