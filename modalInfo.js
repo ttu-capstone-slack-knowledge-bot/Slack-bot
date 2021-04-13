@@ -3,30 +3,16 @@ module.exports = {
     "type": "modal",
     "title": {
       "type": "plain_text",
-      "text": "My App",
-      "emoji": true
-    },
-    "submit": {
-      "type": "plain_text",
-      "text": "Awesome",
-      "emoji": true
-    },
-    "close": {
-      "type": "plain_text",
-      "text": "Whatever",
+      "text": "FIRST MODAL",
       "emoji": true
     },
     "blocks": [
       {
         "type": "section",
         "text": {
-          "type": "mrkdwn",
-          "text": "HEY! I'M A FRICKEN MODAL!"
-        },
-        "accessory": {
-          "type": "image",
-          "image_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSSjriUQ6OtX5mGR9OVsfepnvFP9Szvw3XIIA&usqp=CAU",
-          "alt_text": "cute cat"
+          "type": "plain_text",
+          "text": "HEY! I'M A FRICKEN MODAL!",
+          "emoji": true
         }
       }
     ]
@@ -165,7 +151,7 @@ module.exports = {
         "type": "section",
         "text": {
           "type": "mrkdwn",
-          "text": "• Need to know what a term means? STILL IN PROGRESS WITH MODAL IMPLEMENTATION\n\n• Want to tell me something and help me learn! Then you can use the slash command */add* and I'll make sure to remember that for the next time somebody asks.\n\n• Made a mistake creating a new term, or caught somebody else's? Then just use */edit* and you can tell me what term you need to edit and what it should be changed to!\n\n• Want a simple help message without leaving the channel you're currently in? IN PROGRESS WITH MODAL IMPLEMENTATION!\n\n• Want to add a tag to a term? IN PROGRESS WITH MODAL IMPLEMENTATION."
+          "text": "• Need to know what a term means? Send me a message in the form of *\"@Cappy what does __ mean\"*, and if I know it I'll reply to your message with the definition!\n\n• Want to tell me something and help me learn! Then you can send me a message in the form of *\"@Cappy add ILC : I love Cappy!\"*, and I'll make sure to remember that for the next time somebody asks.\n\n• Want a simple help message without leaving the channel you're currently in? Then you can just message me with *\"@Cappy help\"* and I'll send you a short version of this message!\n\n• Want to add a tag to a term? Send me a message in the form of *\"@Cappy tag ___ with ___\", and I'll tag that term with the term you give me. Make sure the new tag doesn't have any spaces in it though!"
         }
       },
       {
@@ -185,6 +171,7 @@ module.exports = {
       }
     ]
   },
+  
   //Clay
   editModal: {
     "type": "modal",
@@ -228,7 +215,7 @@ module.exports = {
           "type": "plain_text_input",
           "action_id": "editTermEntered1"
         },
-        "optional": false,
+        "optional": false
         //"repsonse_action": "errors",
         //  "errors":{
         //    "editTermInput1": "Boo"
@@ -250,129 +237,5 @@ module.exports = {
       } // end of editTermInput2
     ],
     "callback_id": "edit-term"
-  }, //end of editModal
-  //Hannah
-  addTerm: {
-    "title": {
-      "type": "plain_text",
-      "text": "Add Term"
-    },
-    "submit": {
-      "type": "plain_text",
-      "text": "Submit"
-    },
-    "blocks": [
-      {
-        "type": "input",
-        "block_id": "nameInput",
-        "element": {
-          "type": "plain_text_input",
-          "action_id": "nameEntered",
-          "placeholder": {
-            "type": "plain_text",
-            "text": " "
-          }
-        },
-        "label": {
-          "type": "plain_text",
-          "text": "Enter a term/acronym"
-        }
-      },
-      {
-        "type": "input",
-        "block_id": "descInput",
-        "element": {
-          "type": "plain_text_input",
-          "action_id": "descEntered",
-          "multiline": true,
-          "placeholder": {
-            "type": "plain_text",
-            "text": " "
-          }
-        },
-        "label": {
-          "type": "plain_text",
-          "text": "Enter a definition"
-        }
-      }
-    ],
-    "type": "modal",
-    "callback_id": "addTerm"
-  },
- deleteTermModal: {
-    "title": {
-      "type": "plain_text",
-      "text": "Delete a Term",
-      "emoji": true
-    },
-    "submit": {
-      "type": "plain_text",
-      "text": "Delete Term",
-      "emoji": true
-    },
-    "type": "modal",
-    "close": {
-      "type": "plain_text",
-      "text": "Cancel",
-      "emoji": true
-    },
-    "blocks": [
-      {
-        "type": "section",
-        "text": {
-          "type": "plain_text",
-          "text": "You are about to delete a term from my knowledge base! Make sure this is something you mean to do!",
-          "emoji": true
-        }
-      },
-      {
-        "type": "input",
-        "block_id": "termInput",
-        "element": {
-          "type": "plain_text_input",
-          "action_id": "termEntered",
-          "placeholder": {
-            "type": "plain_text",
-            "text": "Ex: AWS"
-          }
-        },
-        "label": {
-          "type": "plain_text",
-          "text": "Please type the term/acronym you want to delete?",
-          "emoji": true
-        }
-      }
-    ],
-    "callback_id": "deleteTerm"
-  },
-  deleteTermConfirmationModal: {
-    "type": "modal",
-    "title": {
-      "type": "plain_text",
-      "text": "Delete Term Confirmation",
-      "emoji": true
-    },
-    "submit": {
-      "type": "plain_text",
-      "text": "Yes, delete the term",
-      "emoji": true
-    },
-    "close": {
-      "type": "plain_text",
-      "text": "Cancel",
-      "emoji": true
-    },
-    "blocks": [
-      {
-        "type": "section",
-        "text": {
-          "type": "plain_text",
-          "text": "Are you sure you want to delete the term ",
-          "emoji": true
-        }
-      }
-    ],
-    "private_metadata": "REPLACE_WITH_TERM",
-    "callback_id": "deleteTermConfirmation"
-  }
+  } //end of editModal
 }
