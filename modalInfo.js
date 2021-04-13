@@ -3,16 +3,30 @@ module.exports = {
     "type": "modal",
     "title": {
       "type": "plain_text",
-      "text": "FIRST MODAL",
+      "text": "My App",
+      "emoji": true
+    },
+    "submit": {
+      "type": "plain_text",
+      "text": "Awesome",
+      "emoji": true
+    },
+    "close": {
+      "type": "plain_text",
+      "text": "Whatever",
       "emoji": true
     },
     "blocks": [
       {
         "type": "section",
         "text": {
-          "type": "plain_text",
-          "text": "HEY! I'M A FRICKEN MODAL!",
-          "emoji": true
+          "type": "mrkdwn",
+          "text": "HEY! I'M A FRICKEN MODAL!"
+        },
+        "accessory": {
+          "type": "image",
+          "image_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSSjriUQ6OtX5mGR9OVsfepnvFP9Szvw3XIIA&usqp=CAU",
+          "alt_text": "cute cat"
         }
       }
     ]
@@ -151,7 +165,7 @@ module.exports = {
         "type": "section",
         "text": {
           "type": "mrkdwn",
-          "text": "• Need to know what a term means? Send me a message in the form of *\"@Cappy what does __ mean\"*, and if I know it I'll reply to your message with the definition!\n\n• Want to tell me something and help me learn! Then you can send me a message in the form of *\"@Cappy add ILC : I love Cappy!\"*, and I'll make sure to remember that for the next time somebody asks.\n\n• Want a simple help message without leaving the channel you're currently in? Then you can just message me with *\"@Cappy help\"* and I'll send you a short version of this message!\n\n• Want to add a tag to a term? Send me a message in the form of *\"@Cappy tag ___ with ___\", and I'll tag that term with the term you give me. Make sure the new tag doesn't have any spaces in it though!"
+          "text": "• Need to know what a term means? STILL IN PROGRESS WITH MODAL IMPLEMENTATION\n\n• Want to tell me something and help me learn! Then you can use the slash command */add* and I'll make sure to remember that for the next time somebody asks.\n\n• Made a mistake creating a new term, or caught somebody else's? Then just use */edit* and you can tell me what term you need to edit and what it should be changed to!\n\n• Want a simple help message without leaving the channel you're currently in? IN PROGRESS WITH MODAL IMPLEMENTATION!\n\n• Want to add a tag to a term? IN PROGRESS WITH MODAL IMPLEMENTATION."
         }
       },
       {
@@ -171,7 +185,8 @@ module.exports = {
       }
     ]
   },
-  editModal: {  //Clay
+  //Clay
+  editModal: {
     "type": "modal",
     "submit": {
       "type": "plain_text",
@@ -201,7 +216,7 @@ module.exports = {
       {
         "type": "divider"
       },
-      {
+      { //TERM  INPUT
         "type": "input",
         "block_id": "editTermInput1",
         "label": {
@@ -213,9 +228,13 @@ module.exports = {
           "type": "plain_text_input",
           "action_id": "editTermEntered1"
         },
-        "optional": false
+        "optional": false,
+        //"repsonse_action": "errors",
+        //  "errors":{
+        //    "editTermInput1": "Boo"
+         // }
       }, //end of editTermInput1
-      {
+      { //DESC INPUT
         "type": "input",
         "block_id": "editTermInput2",
         "label": {
@@ -232,6 +251,54 @@ module.exports = {
     ],
     "callback_id": "edit-term"
   }, //end of editModal
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
   deleteTermModal: {
     "title": {
       "type": "plain_text",

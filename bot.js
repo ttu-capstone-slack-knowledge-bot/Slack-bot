@@ -126,18 +126,14 @@ async function handleInterationEvent(data)
       }
     //Clay
       else if (data.view.callback_id == "edit-term") {
-        //var table = "termTable";
-        let editTermInput1 = data.view.state.values.editTermInput1.editTermEntered1.value;
-        //console.log("pikaboo", editTermInput1);
-        //console.log("GOT HERE IN EDIT");
-        let termReply = await queryDB(editTermInput1);
-        //console.log("Successful termReply", termReply.Item.RegName);
-        let regTerm = termReply.Item.RegName;
-        let message = "";
 
+        let editTermInput1 = data.view.state.values.editTermInput1.editTermEntered1.value;
+        let termReply = await queryDB(editTermInput1);
+        let regTerm = termReply.Item.RegName;
+        let message = "";        
+     
         if (editTermInput1 == regTerm){
           let desc = "";
-          //console.log("Term Matched DB Term", editTermInput1, " = ", regTerm);
           let termFoundMSG = ("(testing) Term Found In DB!");
           message = termFoundMSG;
           let editTermInput2 = data.view.state.values.editTermInput2.editTermEntered2.value;
@@ -158,7 +154,55 @@ async function handleInterationEvent(data)
             console.error("Error posting message " + error);
           }
         } //end of nested if
-      } //end of else if
+      } 
+      else if (data.view.callback_id == "addTerm") //Hannah
+      {
+        let nameInput = data.view.state.values.nameInput.nameEntered.value;
+        let descInput = data.view.state.values.descInput.descEntered.value;
+
+        let checkIfExists = await getDesc(nameInput);
+        console.log(checkIfExists);
+        
+        if (checkIfExists == null) 
+        {
+          await sendToDB(nameInput, descInput)
+
+          let message = "The term " + nameInput + " has been added to the database";
+          console.log(data);
+
+          let params = {
+            channel: data.user.id,
+            text: message
+          };
+    
+          try {
+            let val = await Bot.chat.postMessage(params);
+            console.log(val);
+          }
+          catch (error)
+          {
+            console.error("Error in 1: ", error);
+          }
+        }
+        else 
+        {
+          let message = "The term " + nameInput + " already exists in the database";
+
+          let params = {
+            channel: data.user.id,
+            text: message
+          };
+    
+          try {
+            let val = await Bot.chat.postMessage(params);
+            console.log(val);
+          }
+          catch (error)
+          {
+            console.error("Error in 2: ", error);
+          }
+        }
+      } 
     break;
   } //end of switch block
 
@@ -182,6 +226,7 @@ async function handleSlashCommand(data)
     case "/testing":
       await postModal(data, modalData.getNameModal);
       break;
+
     case "/delete":
       if (data.text === '')
       {
@@ -226,14 +271,170 @@ async function handleSlashCommand(data)
       }
 
       break;
-    case "/edit":
-      await postModal(data, modalData.editModal);
-      break;
-  }
 
-  // Returns the response message
+    case "/add":
+
+      if(data.text != "") {
+        let addTermRE = /(?<name>[a-zA-Z0-9 ]{1,})(:) (?<desc>[_a-zA-Z0-9 -]{1,})/i; // Will match anything in form of "term: desc"
+
+        if (data.text.search(addTermRE) != -1) {
+          const matchArray = data.text.match(addTermRE); // will return an array with the groups from the regEx
+          let nameInput = matchArray.groups.name;  // This will hold the name the user wishes to add
+          let descInput = matchArray.groups.desc;   // This will hold the definition the user wishes to add
+
+          let checkIfExists = await getDesc(nameInput);
+          console.log(checkIfExists);
+          
+          if (checkIfExists == null) 
+          {
+            await sendToDB(nameInput, descInput)
+            
+            let message = "The term " + nameInput + " has been added to the database";
+
+            let params = {
+              channel: data.user_id,
+              text: message
+            };
+      
+            try {
+              let val = await Bot.chat.postMessage(params);
+              console.log(val);
+            }
+            catch (error)
+            {
+              console.error("Error in 1: ", error);
+            }
+          }
+          else 
+          {
+            let message = "The term " + nameInput + " already exists in the database";
+
+            let params = {
+              channel: data.user_id,
+              text: message
+            };
+      
+            try {
+              let val = await Bot.chat.postMessage(params);
+              console.log(val);
+            }
+            catch (error)
+            {
+              console.error("Error in 2: ", error);
+            }
+          }
+        } 
+        else 
+        {
+          let message = "Please use \"/add\" OR \"/add term: definition\"";
+
+          let params = {
+            channel: data.user_id,
+            text: message
+          };
+    
+          try {
+            let val = await Bot.chat.postMessage(params);
+            console.log(val);
+          }
+          catch (error)
+          {
+            console.error("Error in 1: ", error);
+          }
+        } 
+        break;
+      } 
+      else
+      {
+        console.log("Text not there");
+        await postModal(data, modalData.addTerm);
+      }
+
+    break;
+
+    case "/edit":    
+      if (data.text == ("" || '')){
+        await postModal(data, modalData.editModal);
+      }
+      else if (data.text != ("" || '')){
+        let editTermRE = /(?<term>[\w]{1,}) (with) (?<desc>[\w ]+)/i; //TESTING edit. @Bot edit term with desc. 
+        let response = "";
+        //if (data.event.text.search(editTermRE) != -1) {
+        console.log ("Shotcut command used (edit)");
+
+        const matchArray = data.text.match(editTermRE); // will return an array with the groups from the regEx
+        let wordToEdit = matchArray.groups.term;  // This will hold the term the user wishes to edit
+        let descToApply = matchArray.groups.desc; // This will hold the desc the user wishes to apply
+        
+
+        let termExists = await getDesc(wordToEdit); // Store data in termExists if the term is in the DB
+        if (termExists == null) // Term doesn't exist
+        {
+          response = "Sorry, that term doesn't exist yet, so I can't edit it.";
+
+          let params = {
+            channel: data.user_id,
+            text: response
+          };
+
+          try {
+            let val = await Bot.chat.postMessage(params);
+            console.log(val);
+          }
+          catch (error)
+          {
+            console.error("Error in 1: ", error);
+          }
+        }
+        else if (termExists == -1) // There was some sort of database error
+        {
+          response = "Sorry, there was an error trying to retrieve the term.";
+
+          let params = {
+            channel: data.user_id,
+            text: response
+          };
+
+          try {
+            let val = await Bot.chat.postMessage(params);
+            console.log(val);
+          }
+          catch (error)
+          {
+            console.error("Error in 1: ", error);
+          }
+        }
+        else // Term exists, so apply the new description.
+        {
+          //console.log("Tag exists: Entering applyTagToTerm");
+          response = await updateDesc(wordToEdit, descToApply); //returns "___ is now ____" if the wordToEdit is found.
+          console.log("Testing: Sucessfully updated term using shortcut.");
+          let params = {
+            channel: data.user_id,
+            text: response
+          };
+
+          try {
+            let val = await Bot.chat.postMessage(params);
+            console.log(val);
+          }
+          catch (error)
+          {
+            console.error("Error in 1: ", error);
+          }
+        }
+
+        // Give the response back to the user in a thread.
+        //await sendMessageToSlack(params, data, 1);
+        //}
+        // else {
+        //   console.log("Error: Term update failed");
+        // }
+      } 
+    break; //out of edit
+    }
   return giveBack;
-}
+} // end of slash function
 
 // Not really a fan of this, but I didn't know how else to do this without changing the whole handleEvent function and making it messy.
 async function handleMessage(data, bigData)
@@ -345,8 +546,6 @@ async function handleEvent(data)
           response = "Sorry, I don't know that yet.";
 
           // This might be a good spot for asking if they'd like to add the term to the database.
-          
-
         } else if (desc == -1) {
           // Database responded with an error. 
           response = wordToFind +  "Sorry, there was an error.";
@@ -452,6 +651,21 @@ async function handleEvent(data)
           "Tell me \"learn xxx\" and then I'll ask you what it means. Once you tell me, I'll never forget it!\n" +
           "For a more detailed list of all I can do, check out my Home Page by clicking on my user icon!";
         await sendMessageToSlack(help, data, 0);
+      }
+      else if (data.event.text.includes("show me the tags"))
+      {
+        // Tester case for making sure getting the list of tags works. Not for regular use
+        let tagArrayItem = await getListOfTags();
+        let message = "";
+
+        tagArrayItem.lower.forEach((tag, index) => {
+          if (index != tagArrayItem.lower.length - 1)
+            message += tag + ", ";
+          else
+            message += tag;
+        });
+
+        await sendMessageToSlack(message, data, 1);
       }
       else 
       {
@@ -649,6 +863,9 @@ async function applyTagToTerm(term, newTag)
       // Put the new tag on the end of the array.
       regTags.push(newTag);
       lowerTags.push(newTag.toLowerCase());
+
+      // Send this tag to the overall list of tags
+      await addTagToListOfTags(newTag);
     }
   }
 
@@ -764,7 +981,7 @@ async function queryDB(term)
   term = term.toLowerCase();
 
   let params = {
-    TableName: "AcronymData",
+    TableName: termTable,
     Key: {
       LowerName: term
     }
@@ -1079,3 +1296,110 @@ async function getDataObject(data, method)
   return dataObject;
 
 }
+
+// This function returns an object holding arrays of all tags applied to the database, both regular and all lowercase. 
+// Or it will return null if nothing is found, or -1 if there is an error.
+// Ben
+async function getListOfTags()
+{
+  // set up some variables
+  let result;
+
+  // First, we gotta send a request to the database for the "TagList" item
+  let params = {
+    TableName: "Metadata",
+    Key: {
+      DataType: "TagList"
+    }
+  };
+
+  try{
+    console.log("Requesting item from database");
+    result = await db.get(params).promise();
+    console.log("Got the item");
+
+    if (JSON.stringify(result) == "{}")  // Nothing was found in the database
+    {
+      console.log("Didn't get anything from the database");
+      console.log(JSON.stringify(result));
+      return null;
+    } 
+  }
+  catch (error) {   // Some sort of error within dynamodb
+    console.error("There was an error accessing the database.")
+    console.error(error);
+    return -1;
+  }
+
+  // Cool, we have the item. So now we just extract the arrays and return them
+  let arrayHolder = {
+    lower: result.Item.LowerTags,
+    regular: result.Item.RegTags
+  };
+  console.log("Got the arrays");
+  console.log(arrayHolder);
+
+  return arrayHolder;
+}
+
+// To be used for updating the overall list of tags. Shouldn't really be called anywhere else other than AddTagToTerm
+// Makes sure that getListOfTags is always up to date
+// Ben
+async function addTagToListOfTags(newTag)
+{
+  let tagExists = false;
+
+  // First, we gotta get the lists of tags from the database
+  let tagLists = await getListOfTags();
+  
+  // Now we need to make sure that the new tag isn't already inside this list. So compare the new tag (converted to lower case)
+  //  to the array of tags that are already converted to lowercase
+  tagLists.lower.forEach((item) => {
+    if (item == newTag.toLowerCase())
+    {
+      tagExists = true;
+    }
+  });
+
+  if (tagExists)  // tag is already in the overall list, no need to add it. Log it and return 0 to leave the function.
+  {
+    console.log("Tag is already in the list.");
+    return 0;
+  }
+
+  // If we get here, then this is a totally new tag. So we need to add it to the arrays
+  tagLists.regular.push(newTag);
+  tagLists.lower.push(newTag.toLowerCase());
+
+  // Now we need to update the database to reflect these new tag lists
+  const params = {
+    TableName: "Metadata",
+    Key: {
+      DataType: "TagList"
+    },
+    UpdateExpression: 'set #a = :x, #b = :y',
+    ExpressionAttributeNames: {
+      '#a' : 'RegTags',
+      '#b' : 'LowerTags'
+    },
+    ExpressionAttributeValues: {
+      ':x' : tagLists.regular,
+      ':y' : tagLists.lower
+    }
+  };
+
+  try 
+  {
+    result = await db.update(params).promise();
+    console.log("Tag List has been updated: \n" + result);
+  }
+  catch (error)
+  {
+    console.error("There was an error updating the overall tag list.");
+    console.error(error);
+  }
+
+  // We did it. So now just return 1 to say success, incase we want to add validation
+  return 1;
+}
+
