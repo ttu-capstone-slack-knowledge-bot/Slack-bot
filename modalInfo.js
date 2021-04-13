@@ -338,7 +338,7 @@ module.exports = {
         },
         "label": {
           "type": "plain_text",
-          "text": "Please type the term/acronym you want to delete?",
+          "text": "Please type the term/acronym you want to delete.",
           "emoji": true
         }
       }
