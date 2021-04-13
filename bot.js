@@ -566,6 +566,21 @@ async function handleEvent(data)
           "For a more detailed list of all I can do, check out my Home Page by clicking on my user icon!";
         await sendMessageToSlack(help, data, 0);
       }
+      else if (data.event.text.includes("show me the tags"))
+      {
+        // Tester case for making sure getting the list of tags works. Not for regular use
+        let tagArrayItem = await getListOfTags();
+        let message = "";
+
+        tagArrayItem.lower.forEach((tag, index) => {
+          if (index != tagArrayItem.lower.length - 1)
+            message += tag + ", ";
+          else
+            message += tag;
+        });
+
+        await sendMessageToSlack(message, data, 1);
+      }
       else 
       {
         await sendMessageToSlack("Sorry, I don't know how to handle that request yet.", data, 0);
@@ -762,6 +777,9 @@ async function applyTagToTerm(term, newTag)
       // Put the new tag on the end of the array.
       regTags.push(newTag);
       lowerTags.push(newTag.toLowerCase());
+
+      // Send this tag to the overall list of tags
+      await addTagToListOfTags(newTag);
     }
   }
 
@@ -877,7 +895,7 @@ async function queryDB(term)
   term = term.toLowerCase();
 
   let params = {
-    TableName: "AcronymData",
+    TableName: termTable,
     Key: {
       LowerName: term
     }
@@ -1144,3 +1162,110 @@ async function getDataObject(data, method)
   return dataObject;
 
 }
+
+// This function returns an object holding arrays of all tags applied to the database, both regular and all lowercase. 
+// Or it will return null if nothing is found, or -1 if there is an error.
+// Ben
+async function getListOfTags()
+{
+  // set up some variables
+  let result;
+
+  // First, we gotta send a request to the database for the "TagList" item
+  let params = {
+    TableName: "Metadata",
+    Key: {
+      DataType: "TagList"
+    }
+  };
+
+  try{
+    console.log("Requesting item from database");
+    result = await db.get(params).promise();
+    console.log("Got the item");
+
+    if (JSON.stringify(result) == "{}")  // Nothing was found in the database
+    {
+      console.log("Didn't get anything from the database");
+      console.log(JSON.stringify(result));
+      return null;
+    } 
+  }
+  catch (error) {   // Some sort of error within dynamodb
+    console.error("There was an error accessing the database.")
+    console.error(error);
+    return -1;
+  }
+
+  // Cool, we have the item. So now we just extract the arrays and return them
+  let arrayHolder = {
+    lower: result.Item.LowerTags,
+    regular: result.Item.RegTags
+  };
+  console.log("Got the arrays");
+  console.log(arrayHolder);
+
+  return arrayHolder;
+}
+
+// To be used for updating the overall list of tags. Shouldn't really be called anywhere else other than AddTagToTerm
+// Makes sure that getListOfTags is always up to date
+// Ben
+async function addTagToListOfTags(newTag)
+{
+  let tagExists = false;
+
+  // First, we gotta get the lists of tags from the database
+  let tagLists = await getListOfTags();
+  
+  // Now we need to make sure that the new tag isn't already inside this list. So compare the new tag (converted to lower case)
+  //  to the array of tags that are already converted to lowercase
+  tagLists.lower.forEach((item) => {
+    if (item == newTag.toLowerCase())
+    {
+      tagExists = true;
+    }
+  });
+
+  if (tagExists)  // tag is already in the overall list, no need to add it. Log it and return 0 to leave the function.
+  {
+    console.log("Tag is already in the list.");
+    return 0;
+  }
+
+  // If we get here, then this is a totally new tag. So we need to add it to the arrays
+  tagLists.regular.push(newTag);
+  tagLists.lower.push(newTag.toLowerCase());
+
+  // Now we need to update the database to reflect these new tag lists
+  const params = {
+    TableName: "Metadata",
+    Key: {
+      DataType: "TagList"
+    },
+    UpdateExpression: 'set #a = :x, #b = :y',
+    ExpressionAttributeNames: {
+      '#a' : 'RegTags',
+      '#b' : 'LowerTags'
+    },
+    ExpressionAttributeValues: {
+      ':x' : tagLists.regular,
+      ':y' : tagLists.lower
+    }
+  };
+
+  try 
+  {
+    result = await db.update(params).promise();
+    console.log("Tag List has been updated: \n" + result);
+  }
+  catch (error)
+  {
+    console.error("There was an error updating the overall tag list.");
+    console.error(error);
+  }
+
+  // We did it. So now just return 1 to say success, incase we want to add validation
+  return 1;
+}
+
