@@ -62,9 +62,9 @@ async function handleInterationEvent(data)
 
       if (data.view.callback_id == "getName")
       {
-        // This is just a tester function. We can clear it out later.
         let nameInput = data.view.state.values.nameInput.nameEntered.value;
         console.log(nameInput);
+        console.log("Did that work?");
 
         let message = "Thanks " + nameInput + ", nice to meet you!";
 
@@ -79,7 +79,7 @@ async function handleInterationEvent(data)
         }
         catch (error)
         {
-          console.error("Error in getName: ", error)
+          console.error("Error in 1: ", error)
         }
       }
       else if (data.view.callback_id == "deleteTerm")
@@ -124,18 +124,39 @@ async function handleInterationEvent(data)
           console.error(error);
         }
       }
-    //Clay
-      else if (data.view.callback_id == "edit-term") {
+      else if (data.view.callback_id == "edit-term") //Clay
+      {
 
         let editTermInput1 = data.view.state.values.editTermInput1.editTermEntered1.value;
-        let termReply = await queryDB(editTermInput1);
-        let regTerm = termReply.Item.RegName;
-        let message = "";        
-     
-        if (editTermInput1 == regTerm){
+        let termExists = await queryDB(editTermInput1); //returns "result"
+        if (termExists == null) {
+          let message = "Sorry, the term you entered does not exist. I can't edit what is not there. Try /add to create the term.";
+
+
+          let params = {
+            channel: data.user.id,
+            text: message
+          };
+        
+          try {
+            let val = await Bot.chat.postMessage(params);
+            
+            console.log(val);
+          }
+          catch (error) {
+            console.error("Error posting message " + error);
+          }
+          return giveBack;
+        }
+        //let define = await getDesc(editTermInput1); // check the db if the term is there        
+        let dbTermName = termExists.Item.RegName; //Pull out just the term name from the 
+        let message;      
+        
+        //if the two terms match, then continue
+        if (editTermInput1 == dbTermName){
           let desc = "";
-          let termFoundMSG = ("(testing) Term Found In DB!");
-          message = termFoundMSG;
+          //let termFoundMSG = ("(testing) Term Found In DB!");
+          //message = termFoundMSG;
           let editTermInput2 = data.view.state.values.editTermInput2.editTermEntered2.value;
           desc = editTermInput2;
 
@@ -153,7 +174,25 @@ async function handleInterationEvent(data)
           catch (error) {
             console.error("Error posting message " + error);
           }
-        } //end of nested if
+        }
+        //else if the term isn't in the DB, notify the user.
+        else if (termExists == null) {
+          message = "Sorry, the term you entered does not exist. I can't edit what is not there. Try /add to create the term.";
+
+          let params = {
+            channel: data.user.id,
+            text: message
+          };
+        
+          try {
+            let val = await Bot.chat.postMessage(params);
+            console.log(val);
+          }
+          catch (error) {
+            console.error("Error posting message " + error);
+          }
+        }
+
       } 
       else if (data.view.callback_id == "addTerm") //Hannah
       {
@@ -204,6 +243,8 @@ async function handleInterationEvent(data)
         }
       } 
     break;
+
+    break; // Break Edit Block
   } //end of switch block
 
   // Return the response message
@@ -223,9 +264,9 @@ async function handleSlashCommand(data)
 
   switch (command)
   {
-    case "/testing":
+    case "/testing":    
       await postModal(data, modalData.getNameModal);
-      break;
+    break; // out of testing
 
     case "/delete":
       if (data.text === '')
@@ -356,7 +397,7 @@ async function handleSlashCommand(data)
       if (data.text == ("" || '')){
         await postModal(data, modalData.editModal);
       }
-      else if (data.text != ("" || '')){
+      else if (data.text != null){
         let editTermRE = /(?<term>[\w]{1,}) (with) (?<desc>[\w ]+)/i; //TESTING edit. @Bot edit term with desc. 
         let response = "";
         //if (data.event.text.search(editTermRE) != -1) {
@@ -370,7 +411,7 @@ async function handleSlashCommand(data)
         let termExists = await getDesc(wordToEdit); // Store data in termExists if the term is in the DB
         if (termExists == null) // Term doesn't exist
         {
-          response = "Sorry, that term doesn't exist yet, so I can't edit it.";
+          response = "Sorry, the term you entered does not exist. I can't edit what is not there. Try /add to create the term.";
 
           let params = {
             channel: data.user_id,
@@ -423,16 +464,10 @@ async function handleSlashCommand(data)
             console.error("Error in 1: ", error);
           }
         }
-
-        // Give the response back to the user in a thread.
-        //await sendMessageToSlack(params, data, 1);
-        //}
-        // else {
-        //   console.log("Error: Term update failed");
-        // }
       } 
     break; //out of edit
-    }
+  } // end of switch 
+
   return giveBack;
 } // end of slash function
 
@@ -1402,4 +1437,3 @@ async function addTagToListOfTags(newTag)
   // We did it. So now just return 1 to say success, incase we want to add validation
   return 1;
 }
-
