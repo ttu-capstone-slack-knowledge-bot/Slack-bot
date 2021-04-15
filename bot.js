@@ -82,28 +82,27 @@ async function handleInterationEvent(data)
           console.error("Error in 1: ", error)
         }
       }
+      else if (data.view.callback_id == "addTag") {
+        
+        let termInput = data.view.state.values.termToTag.term.value;
+        let tagInput = data.view.state.values.tag.tag.value;
 
-    else if (data.view.callback_id == "addTag") {
-      
-      let termInput = data.view.state.values.termToTag.term.value;
-      let tagInput = data.view.state.values.tag.tag.value;
+        let message = await applyTagToTerm(termInput, tagInput);
 
-      let message = await applyTagToTerm(termInput, tagInput);
+        let params = {
+          channel: data.user.id,
+          text: message
+        };
 
-      let params = {
-        channel: data.user.id,
-        text: message
-      };
-
-      try {
-        let val = await Bot.chat.postMessage(params);
-        console.log(val);
+        try {
+          let val = await Bot.chat.postMessage(params);
+          console.log(val);
+        }
+        catch (error)
+        {
+          console.error("Error in 1: ", error)
+        }
       }
-      catch (error)
-      {
-        console.error("Error in 1: ", error)
-      }
-    }
       else if (data.view.callback_id == "deleteTerm")
       {
         let message = "";
@@ -343,17 +342,20 @@ async function handleSlashCommand(data)
       let i; 
       for (i = 0; i < tags.regular.length; i++) {
           newOption = { 
-          text: {
-          type: "plain_text",
-          text: tags.regular[i]
-        },
-        value: "Choice " + i
-        };
+            text: {
+              type: "plain_text",
+              text: tags.regular[i]
+            },
+            value: "Choice " + i
+          };
         newOptionsArray.push(newOption);
       }
 
       let newModal = JSON.parse(JSON.stringify(modalData.addTag));
-      newModal.blocks[0].element.options=newOptionsArray;
+
+      // There was a 0 in the blocks array, it needed to be a 3, since your modal has more things than my test modal did. Whoopsies.
+      //              0 - Such a tiny error
+      newModal.blocks[3].element.options=newOptionsArray;
 
       await postModal(data, newModal);
 
