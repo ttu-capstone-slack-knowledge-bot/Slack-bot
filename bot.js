@@ -82,6 +82,45 @@ async function handleInterationEvent(data)
           console.error("Error in 1: ", error)
         }
       }
+
+    if (data.view.callback_id == "addTag") {
+      
+      let newOptionsArray = []; 
+      let i; 
+      for (i = 0; i < dataArray.length; i++) {
+        let newOption = { 
+          type: "plain_text",
+          text: dataArray[i]
+        },
+        value: "Choice "+i
+      }; 
+      newOptionsArray.push(newOption);
+
+      let newModal = JSON.parse(JSON.stringify(modalData.modalWithOptions));
+      newModal.blocks[0].element.options=newOptionsArray;
+
+      await postModal(data, newModal);
+      
+      let termInput = data.view.state.values.termToTag.term.value;
+      let tagInput = data.view.state.values.tag.tag.value;
+
+      let message = await applyTagToTerm(termInput, tagInput);
+
+      let params = {
+        channel: data.user.id,
+        text: message
+      };
+
+      try {
+        let val = await Bot.chat.postMessage(params);
+        console.log(val);
+      }
+      catch (error)
+      {
+        console.error("Error in 1: ", error)
+      }
+    }
+    
     break;
   }
   
@@ -105,6 +144,10 @@ async function handleSlashCommand(data)
     case "/testing":
       
       await postModal(data, modalData.getNameModal);
+      break;
+
+    case "/addtag":
+      await postModal(data, modalData.addTag);
       break;
   }
 
@@ -221,16 +264,7 @@ async function handleEvent(data)
           // Term doesn't exist yet
           response = "Sorry, I don't know that term yet. Would you like to add it?";
           await sendMessageToSlack(response, data, 1); 
-/*
-          // Add term to the database if the user chooses to define it
-          if (_____) {
-            response = "Please describe " + wordToFind;
-            sendToDB(wordToFind, ____);
-          }
-          else {
-            response = "Ok. Have a good day!";
-          }
-*/
+
         } else if (desc == -1) {
           // Database responded with an error. 
           response = wordToFind +  "Sorry, there was an error.";
