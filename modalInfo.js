@@ -171,64 +171,20 @@ module.exports = {
       }
     ]
   },
-<<<<<<< HEAD
-
-  addTag: {
-    "title": {
-      "type": "plain_text",
-      "text": "Add a Tag to a Term",
-      "emoji": true
-    },
-=======
   
   //Clay
   editModal: {
     "type": "modal",
->>>>>>> US17_Delete_Term
     "submit": {
       "type": "plain_text",
       "text": "Submit",
       "emoji": true
     },
-<<<<<<< HEAD
-    "type": "modal",
-=======
->>>>>>> US17_Delete_Term
     "close": {
       "type": "plain_text",
       "text": "Cancel",
       "emoji": true
     },
-<<<<<<< HEAD
-    "blocks": [
-      {
-        "type": "input",
-        "block_id": "termToTag",
-        "element": {
-          "type": "plain_text_input",
-          "action_id": "term"
-        },
-        "label": {
-          "type": "plain_text",
-          "text": "Term:",
-          "emoji": true
-        }
-      },
-      {
-        "type": "divider"
-      },
-      {
-        "type": "input",
-        "block_id": "tag",
-        "element": {
-          "type": "plain_text_input",
-          "action_id": "tag"
-        },
-        "label": {
-          "type": "plain_text",
-          "text": "Write a Tag:",
-          "emoji": true
-=======
     "title": {
       "type": "plain_text",
       "text": "Edit",
@@ -307,12 +263,154 @@ module.exports = {
         "label": {
           "type": "plain_text",
           "text": "Enter a term/acronym"
->>>>>>> US17_Delete_Term
         }
       },
       {
         "type": "input",
-<<<<<<< HEAD
+        "block_id": "descInput",
+        "element": {
+          "type": "plain_text_input",
+          "action_id": "descEntered",
+          "multiline": true,
+          "placeholder": {
+            "type": "plain_text",
+            "text": " "
+          }
+        },
+        "label": {
+          "type": "plain_text",
+          "text": "Enter a definition"
+        }
+      }
+    ],
+    "type": "modal",
+    "callback_id": "addTerm"
+  },
+ deleteTermModal: {
+    "title": {
+      "type": "plain_text",
+      "text": "Delete a Term",
+      "emoji": true
+    },
+    "submit": {
+      "type": "plain_text",
+      "text": "Delete Term",
+      "emoji": true
+    },
+    "type": "modal",
+    "close": {
+      "type": "plain_text",
+      "text": "Cancel",
+      "emoji": true
+    },
+    "blocks": [
+      {
+        "type": "section",
+        "text": {
+          "type": "plain_text",
+          "text": "You are about to delete a term from my knowledge base! Make sure this is something you mean to do!",
+          "emoji": true
+        }
+      },
+      {
+        "type": "input",
+        "block_id": "termInput",
+        "element": {
+          "type": "plain_text_input",
+          "action_id": "termEntered",
+          "placeholder": {
+            "type": "plain_text",
+            "text": "Ex: AWS"
+          }
+        },
+        "label": {
+          "type": "plain_text",
+          "text": "Please type the term/acronym you want to delete.",
+          "emoji": true
+        }
+      }
+    ],
+    "callback_id": "deleteTerm"
+  },
+  deleteTermConfirmationModal: {
+    "type": "modal",
+    "title": {
+      "type": "plain_text",
+      "text": "Delete Term Confirmation",
+      "emoji": true
+    },
+    "submit": {
+      "type": "plain_text",
+      "text": "Yes, delete the term",
+      "emoji": true
+    },
+    "close": {
+      "type": "plain_text",
+      "text": "Cancel",
+      "emoji": true
+    },
+    "blocks": [
+      {
+        "type": "section",
+        "text": {
+          "type": "plain_text",
+          "text": "Are you sure you want to delete the term ",
+          "emoji": true
+        }
+      }
+    ],
+    "private_metadata": "REPLACE_WITH_TERM",
+    "callback_id": "deleteTermConfirmation"
+  },
+  addTag: {
+    "title": {
+      "type": "plain_text",
+      "text": "Add a Tag to a Term",
+      "emoji": true
+    },
+    "submit": {
+      "type": "plain_text",
+      "text": "Submit",
+      "emoji": true
+    },
+    "type": "modal",
+    "close": {
+      "type": "plain_text",
+      "text": "Cancel",
+      "emoji": true
+    },
+    "blocks": [
+      {
+        "type": "input",
+        "block_id": "termToTag",
+        "element": {
+          "type": "plain_text_input",
+          "action_id": "term"
+        },
+        "label": {
+          "type": "plain_text",
+          "text": "Term:",
+          "emoji": true
+        }
+      },
+      {
+        "type": "divider"
+      },
+      {
+        "type": "input",
+        "block_id": "tag",
+        "element": {
+          "type": "plain_text_input",
+          "action_id": "tag"
+        },
+        "label": {
+          "type": "plain_text",
+          "text": "Write a Tag:",
+          "emoji": true
+        }
+      },
+      {
+        "type": "input",
         "block_id": "tagSelect",
         "element": {
           "type": "static_select",
@@ -365,40 +463,11 @@ module.exports = {
     "title": {
       "type": "plain_text",
       "text": "Add a Tag to a Term",
-=======
-        "block_id": "descInput",
-        "element": {
-          "type": "plain_text_input",
-          "action_id": "descEntered",
-          "multiline": true,
-          "placeholder": {
-            "type": "plain_text",
-            "text": " "
-          }
-        },
-        "label": {
-          "type": "plain_text",
-          "text": "Enter a definition"
-        }
-      }
-    ],
-    "type": "modal",
-    "callback_id": "addTerm"
-  },
- deleteTermModal: {
-    "title": {
-      "type": "plain_text",
-      "text": "Delete a Term",
->>>>>>> US17_Delete_Term
       "emoji": true
     },
     "submit": {
       "type": "plain_text",
-<<<<<<< HEAD
       "text": "Submit",
-=======
-      "text": "Delete Term",
->>>>>>> US17_Delete_Term
       "emoji": true
     },
     "type": "modal",
@@ -409,7 +478,6 @@ module.exports = {
     },
     "blocks": [
       {
-<<<<<<< HEAD
         "type": "input",
         "block_id": "termToTag",
         "element": {
@@ -419,17 +487,10 @@ module.exports = {
         "label": {
           "type": "plain_text",
           "text": "Term:",
-=======
-        "type": "section",
-        "text": {
-          "type": "plain_text",
-          "text": "You are about to delete a term from my knowledge base! Make sure this is something you mean to do!",
->>>>>>> US17_Delete_Term
           "emoji": true
         }
       },
       {
-<<<<<<< HEAD
         "type": "divider"
       },
       {
@@ -442,60 +503,10 @@ module.exports = {
         "label": {
           "type": "plain_text",
           "text": "Write a Tag:",
-=======
-        "type": "input",
-        "block_id": "termInput",
-        "element": {
-          "type": "plain_text_input",
-          "action_id": "termEntered",
-          "placeholder": {
-            "type": "plain_text",
-            "text": "Ex: AWS"
-          }
-        },
-        "label": {
-          "type": "plain_text",
-          "text": "Please type the term/acronym you want to delete.",
           "emoji": true
         }
       }
     ],
-    "callback_id": "deleteTerm"
-  },
-  deleteTermConfirmationModal: {
-    "type": "modal",
-    "title": {
-      "type": "plain_text",
-      "text": "Delete Term Confirmation",
-      "emoji": true
-    },
-    "submit": {
-      "type": "plain_text",
-      "text": "Yes, delete the term",
-      "emoji": true
-    },
-    "close": {
-      "type": "plain_text",
-      "text": "Cancel",
-      "emoji": true
-    },
-    "blocks": [
-      {
-        "type": "section",
-        "text": {
-          "type": "plain_text",
-          "text": "Are you sure you want to delete the term ",
->>>>>>> US17_Delete_Term
-          "emoji": true
-        }
-      }
-    ],
-<<<<<<< HEAD
     "callback_id": "addTag"
-=======
-    "private_metadata": "REPLACE_WITH_TERM",
-    "callback_id": "deleteTermConfirmation"
->>>>>>> US17_Delete_Term
   }
-}
-*/ 
+  */
