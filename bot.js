@@ -452,7 +452,7 @@ async function handleSlashCommand(data)
         //input validation
         if (data.text.length != 1 || !(data.text.match(/[A-Z]/i))) { //if text is not a single letter
           //output to slack that the command formatting was incorrect
-          let message = "Please use \"/give\" or \"/give [letter]\"";
+          let message = "Please use \"/terms\" or \"/terms [letter]\"";
 
           let params = {
             channel: data.user_id,
@@ -1195,6 +1195,34 @@ async function readFromDB()
     })
     console.log(listOfTerms);
     return listOfTerms;
+  } else {
+    console.error("There was an error");
+    return "Error";
+  }
+}
+
+async function readFromDB2()
+{
+  let listOfTerms = [];
+
+  const params = {
+    TableName: "AcronymData"
+  }
+
+  let result = await db.scan(params).promise();
+  if (result) {
+    console.log("Thing has been read");
+
+    result.Items.forEach(function(item) {
+      console.log(item.RegName);
+      var tempString = item.RegName + ": " + item.Desc;
+      listOfTerms.push(tempString);
+      
+    })
+    listOfTerms.sort()
+    console.log(listOfTerms);
+    return listOfTerms;
+
   } else {
     console.error("There was an error");
     return "Error";
