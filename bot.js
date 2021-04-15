@@ -85,22 +85,6 @@ async function handleInterationEvent(data)
 
     else if (data.view.callback_id == "addTag") {
       
-      let newOptionsArray = []; 
-      let i; 
-      for (i = 0; i < dataArray.length; i++) {
-        let newOption = { 
-          type: "plain_text",
-          text: dataArray[i]
-        },
-        value: "Choice" + i
-      }; 
-      newOptionsArray.push(newOption);
-
-      let newModal = JSON.parse(JSON.stringify(modalData.modalWithOptions));
-      newModal.blocks[0].element.options=newOptionsArray;
-
-      await postModal(data, newModal);
-      
       let termInput = data.view.state.values.termToTag.term.value;
       let tagInput = data.view.state.values.tag.tag.value;
 
@@ -352,7 +336,44 @@ async function handleSlashCommand(data)
       break;
 
     case "/addtag":
-      await postModal(data, modalData.addTag);
+      if (data.view.callback_id == "addTag") {
+
+        let newOptionsArray = []; 
+        let i; 
+        for (i = 0; i < dataArray.length; i++) {
+          let newOption = { 
+            type: "plain_text",
+            text: dataArray[i]
+          },
+          value: "Choice "+i
+        }; 
+        newOptionsArray.push(newOption);
+ 
+        let newModal = JSON.parse(JSON.stringify(modalData.modalWithOptions));
+        newModal.blocks[0].element.options=newOptionsArray;
+ 
+        await postModal(data, newModal);
+ 
+        let termInput = data.view.state.values.termToTag.term.value;
+        let tagInput = data.view.state.values.tag.tag.value;
+ 
+        let message = await applyTagToTerm(termInput, tagInput);
+ 
+        let params = {
+          channel: data.user.id,
+          text: message
+        };
+ 
+        try {
+          let val = await Bot.chat.postMessage(params);
+          console.log(val);
+        }
+        catch (error)
+        {
+          console.error("Error in 1: ", error)
+        }
+      }
+
       break;
     case "/add":
 
