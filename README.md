@@ -10,13 +10,20 @@ Members:
 - Alison Rust
 - Alexander Clifford
 - Hannah Lafever
-- Clay Webb!
+- Clay Webb
 
 Current Bot Features:
 
 - Able to respond to direct @bot messages if specific words are in the message.
 - Able to send a brief help message if the user sends "@bot_name help"
 - Able to tell the user a definition of a term if the user sends a message in the form of "@bot_name what does ___ mean?"
+
+Current Slash Commands:
+Make sure to add these in your personal bot to make sure you can use all the current functionality
+
+- /testing - just a simple slash command to make sure modals and stuff work. Will probably take out soon.
+- /edit - Edits a term's definition in the database.
+- /add - Adds a term to the database
 
 Programming Guidelines/Practices:
 
