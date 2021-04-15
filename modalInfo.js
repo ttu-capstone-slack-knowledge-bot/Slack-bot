@@ -242,7 +242,7 @@ module.exports = {
   addTerm: {
     "title": {
       "type": "plain_text",
-      "text": "Add Term"
+      "text": "Add"
     },
     "submit": {
       "type": "plain_text",
@@ -361,5 +361,13 @@ module.exports = {
     ],
     "private_metadata": "REPLACE_WITH_TERM",
     "callback_id": "deleteTermConfirmation"
+  },
+  termsModal: {
+    "title": {
+      "type": "plain_text",
+      "text": "Terms"
+    },
+    "blocks": [],
+    "type": "modal"
   }
 }
