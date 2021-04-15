@@ -238,6 +238,62 @@ module.exports = {
     ],
     "callback_id": "edit-term"
   }, //end of editModal
+
+    //Clay
+    viewTags: {
+      "type": "modal",
+      "submit": {
+        "type": "plain_text",
+        "text": "Submit",
+        "emoji": true
+      },
+      "close": {
+        "type": "plain_text",
+        "text": "Cancel",
+        "emoji": true
+      },
+      "title": {
+        "type": "plain_text",
+        "text": "Tag Viewer",
+        "emoji": true
+      },
+      "blocks": [
+        {
+          "type": "section",
+          "block_id": "viewTagHeader",
+          "text": {
+            "type": "plain_text",
+            "text": " ",
+            "emoji": true
+          }
+        }, //end of editHeader
+        {
+          "type": "divider"
+        },
+        { //TERM  INPUT
+          "type": "input",
+          "block_id": "viewTagInput",
+          "label": {
+            "type": "plain_text",
+            "text": "What term do you want to view the tags for?",
+            "emoji": true
+          },
+          "element": {
+            "type": "plain_text_input",
+            "action_id": "viewTagEntered"
+          },
+          "optional": false
+          //"repsonse_action": "errors",
+          //  "errors":{
+          //    "editTermInput1": "Boo"
+           // }
+        }, //end of editTermInput1
+      ],
+      "callback_id": "view-term-tag"
+    }, //end of viewTagModal
+
+
+
   //Hannah
   addTerm: {
     "title": {
@@ -286,6 +342,7 @@ module.exports = {
     "type": "modal",
     "callback_id": "addTerm"
   },
+  
  deleteTermModal: {
     "title": {
       "type": "plain_text",

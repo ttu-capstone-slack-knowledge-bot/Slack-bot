@@ -242,9 +242,53 @@ async function handleInterationEvent(data)
           }
         }
       } 
+      else if (data.view.callback_id == "view-term-tag"){
+        let termInput = data.view.state.values.viewTagInput.viewTagEntered.value;
+        let checkIfExists = await getDesc(termInput);
+        console.log(checkIfExists);
+        
+        if (checkIfExists == null) 
+        {
+          let message = "The term " + nameInput + " does not exist in the database.";
+          console.log(data);
+
+          let params = {
+            channel: data.user.id,
+            text: message
+          };
+    
+          try {
+            let val = await Bot.chat.postMessage(params);
+            console.log(val);
+          }
+          catch (error)
+          {
+            console.error("Error in 1: ", error);
+          }
+        }
+        else //term found. View the tags
+        {
+          let returnedTags = getTagsForTerm(ternInput)
+          let message = "The term " + nameInput + " has the following tags:\n " + returnedTags;
+
+          let params = {
+            channel: data.user.id,
+            text: message
+          };
+    
+          try {
+            let val = await Bot.chat.postMessage(params);
+            console.log(val);
+          }
+          catch (error)
+          {
+            console.error("Error in 2: ", error);
+          }
+        }
+      }
     break;
 
-    break; // Break Edit Block
+    
   } //end of switch block
 
   // Return the response message
@@ -466,6 +510,80 @@ async function handleSlashCommand(data)
         }
       } 
     break; //out of edit
+
+    case "/viewTags":    
+      if (data.text == ("" || '')){
+        await postModal(data, modalData.viewTags);
+      }
+      else if (data.text != null){
+        let viewTagTermRE = /(?<term>[\w]{1,})/i; 
+        let response = "";
+        //if (data.event.text.search(editTermRE) != -1) {
+        console.log ("Shotcut command used (viewTags)");
+
+        const matchArray = data.text.match(viewTagTermRE); // will return an array with the groups from the regEx
+        let wordToGetTagsFrom = matchArray.groups.term;  // This will hold the term the user wishes to edit
+        
+        let termExists = await getDesc(wordToGetTagsFrom); // Store data in termExists if the term is in the DB
+        if (termExists == null) // Term doesn't exist
+        {
+          response = "Sorry, the term you entered does not exist. I can't view what is not there. Try /add to create the term.";
+
+          let params = {
+            channel: data.user_id,
+            text: response
+          };
+
+          try {
+            let val = await Bot.chat.postMessage(params);
+            console.log(val);
+          }
+          catch (error)
+          {
+            console.error("Error in 1: ", error);
+          }
+        }
+        else if (termExists == -1) // There was some sort of database error
+        {
+          response = "Sorry, there was an error trying to retrieve the term.";
+
+          let params = {
+            channel: data.user_id,
+            text: response
+          };
+
+          try {
+            let val = await Bot.chat.postMessage(params);
+            console.log(val);
+          }
+          catch (error)
+          {
+            console.error("Error in 1: ", error);
+          }
+        }
+        else // Term exists, so post the tags associated with the given term.
+        {
+          //console.log("Tag exists: Entering applyTagToTerm");
+          response = await getTagsForTerm(wordToGetTagsFrom);
+          console.log("Testing: Sucessfully posted term's tags using shortcut.");
+          let params = {
+            channel: data.user_id,
+            text: response
+          };
+
+          try {
+            let val = await Bot.chat.postMessage(params);
+            console.log(val);
+          }
+          catch (error)
+          {
+            console.error("Error in 1: ", error);
+          }
+        }
+      } 
+    break; //out of viewTags
+
+
   } // end of switch 
 
   return giveBack;
