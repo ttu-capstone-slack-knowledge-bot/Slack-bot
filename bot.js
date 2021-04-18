@@ -87,20 +87,22 @@ async function handleInterationEvent(data)
         let termInput = data.view.state.values.termToTag.term.value;
         let typedTag = data.view.state.values.tag.tag.value;
         let selectedTag = data.view.state.values.tagSelect.tagMenu.value;
+        let message; 
+        let tag; 
         
         if (typedTag == "" && selectedTag == "") {
-          let message = await sendMessageToSlack("No tags were entered"); 
+          message = "No tags were entered"; 
         }
 
         else if (typedTag == "") {
-          let tag = selectedTag; 
+          tag = selectedTag; 
+          message = await applyTagToTerm(termInput, tag);
         }
 
         else if (selectedTag == ""){ 
-          let tag = typedTag; 
+          tag = typedTag; 
+          message = await applyTagToTerm(termInput, tag);
         }
-
-        let message = await applyTagToTerm(termInput, tag);
 
         let params = {
           channel: data.user.id,
