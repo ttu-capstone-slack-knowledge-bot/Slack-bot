@@ -86,20 +86,20 @@ async function handleInterationEvent(data)
         
         let termInput = data.view.state.values.termToTag.term.value;
         let typedTag = data.view.state.values.tag.tag.value;
-        let selectedTag = data.view.state.values.tagSelect.tagMenu.value;
+        let selectedTag = data.view.state.values.tagSelect.tagMenu.selected_option.text.text;
         let message; 
         let tag; 
         
-        if (typedTag == "" && selectedTag == "") {
+        if (!typedTag && !selectedTag) {
           message = "No tags were entered"; 
         }
 
-        else if (typedTag == "") {
+        else if (!typedTag) {
           tag = selectedTag; 
           message = await applyTagToTerm(termInput, tag);
         }
 
-        else if (selectedTag == ""){ 
+        else if (!selectedTag){ 
           tag = typedTag; 
           message = await applyTagToTerm(termInput, tag);
         }
