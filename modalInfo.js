@@ -399,6 +399,7 @@ module.exports = {
       {
         "type": "input",
         "block_id": "tag",
+        "optional": true,
         "element": {
           "type": "plain_text_input",
           "action_id": "tag"
@@ -412,6 +413,7 @@ module.exports = {
       {
         "type": "input",
         "block_id": "tagSelect",
+        "optional": true,
         "element": {
           "type": "static_select",
           "placeholder": {
@@ -449,7 +451,7 @@ module.exports = {
         },
         "label": {
           "type": "plain_text",
-          "text": "Choose an existing tag: (If you wrote your own, select None)",
+          "text": "Choose an existing tag:",
           "emoji": true
         }
       }

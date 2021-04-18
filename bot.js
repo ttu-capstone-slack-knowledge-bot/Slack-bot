@@ -85,9 +85,22 @@ async function handleInterationEvent(data)
       else if (data.view.callback_id == "addTag") {
         
         let termInput = data.view.state.values.termToTag.term.value;
-        let tagInput = data.view.state.values.tag.tag.value;
+        let typedTag = data.view.state.values.tag.tag.value;
+        let selectedTag = data.view.state.values.tagSelect.tagMenu.value;
+        
+        if (typedTag == "" && selectedTag == "") {
+          let message = await sendMessageToSlack("No tags were entered"); 
+        }
 
-        let message = await applyTagToTerm(termInput, tagInput);
+        else if (typedTag == "") {
+          let tag = selectedTag; 
+        }
+
+        else if (selectedTag == ""){ 
+          let tag = typedTag; 
+        }
+
+        let message = await applyTagToTerm(termInput, tag);
 
         let params = {
           channel: data.user.id,
@@ -353,8 +366,6 @@ async function handleSlashCommand(data)
 
       let newModal = JSON.parse(JSON.stringify(modalData.addTag));
 
-      // There was a 0 in the blocks array, it needed to be a 3, since your modal has more things than my test modal did. Whoopsies.
-      //              0 - Such a tiny error
       newModal.blocks[3].element.options=newOptionsArray;
 
       await postModal(data, newModal);
