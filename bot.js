@@ -84,25 +84,41 @@ async function handleInterationEvent(data)
       }
       else if (data.view.callback_id == "addTag") {
         
+        // These two will either be given a value, or null if nothing was entered
         let termInput = data.view.state.values.termToTag.term.value;
         let typedTag = data.view.state.values.tag.tag.value;
-        let selectedTag = data.view.state.values.tagSelect.tagMenu.selected_option.text.text;
+
+        // Need these for later
         let message; 
         let tag; 
+
+        // Gotta play with this one some, since it's not as straight forward
+        let selectedTag;
         
-        if (!typedTag && !selectedTag) {
+        if (data.view.state.values.tagSelect.tagMenu.selected_option == null) // No option was chosen, so it doesn't even get .text.text
+        {
+          selectedTag = null;
+        }
+        else  // An option was chosen, so now we can get the .text.text to get the actual option
+        {
+          selectedTag = data.view.state.values.tagSelect.tagMenu.selected_option.text.text;
+        }
+        
+        if (typedTag == null && selectedTag == null) {  // Both empty
           message = "No tags were entered"; 
         }
 
-        else if (!typedTag) {
+        else if (typedTag == null) {  // No tag typed
           tag = selectedTag; 
           message = await applyTagToTerm(termInput, tag);
         }
 
-        else if (!selectedTag){ 
+        else if (selectedTag == null){  // No tag chosen
           tag = typedTag; 
           message = await applyTagToTerm(termInput, tag);
         }
+
+        // What if both a tag is typed and an option is chosen? Then nothing happens. Probably just need an else that picks one.
 
         let params = {
           channel: data.user.id,
