@@ -246,18 +246,17 @@ async function handleInterationEvent(data)
         }
 
       } 
-      else if (data.view.callback_id == "addTerm") //Hannah
+      else if (data.view.callback_id == "addTerm")
       {
-        let nameInput = data.view.state.values.nameInput.nameEntered.value;
-        let descInput = data.view.state.values.descInput.descEntered.value;
+        let nameInput = data.view.state.values.nameInput.nameEntered.value; //get the term's nameInput from modal payload
+        let descInput = data.view.state.values.descInput.descEntered.value; //get the terms' descInput from modal payload
 
-        let checkIfExists = await getDesc(nameInput);
-        console.log(checkIfExists);
-        
-        if (checkIfExists == null) 
+        let checkIfExists = await getDesc(nameInput); //check if the term already exists in the database
+        if (checkIfExists == null) //if the term doens't exist, add it and tell the user
         {
-          await sendToDB(nameInput, descInput)
+          await sendToDB(nameInput, descInput); //add the term to the database
 
+          //output to slack that term was successfully added
           let message = "The term " + nameInput + " has been added to the database";
           console.log(data);
 
@@ -275,8 +274,9 @@ async function handleInterationEvent(data)
             console.error("Error in 1: ", error);
           }
         }
-        else 
+        else //the term already exists, tell the user without adding it
         {
+          //out to slack that the term already exists
           let message = "The term " + nameInput + " already exists in the database";
 
           let params = {
@@ -294,9 +294,8 @@ async function handleInterationEvent(data)
           }
         }
       } 
-    break;
 
-    break; // Break Edit Block
+    break; // Break view_submission block
   } //end of switch block
 
   // Return the response message
@@ -363,7 +362,7 @@ async function handleSlashCommand(data)
         await postModal(data, message);
       }
 
-      break;
+    break;
 
     case "/addtag":
 
@@ -392,21 +391,23 @@ async function handleSlashCommand(data)
 
     case "/add":
 
-      if(data.text != "") {
-        let addTermRE = /(?<name>[a-zA-Z0-9 ]{1,})(:) (?<desc>[_a-zA-Z0-9 -]{1,})/i; // Will match anything in form of "term: desc"
+      if(data.text != "") { //if user entered any text after "/add", continue
 
-        if (data.text.search(addTermRE) != -1) {
+        let addTermRE = /(?<name>[a-zA-Z0-9 ]{1,})(:) (?<desc>[_a-zA-Z0-9-]{1,})/i; // Will match anything in form of "term: desc"
+
+        if (data.text.search(addTermRE) != -1) { //if text input after the slash command matches the format "/add term: desc", continue
+
           const matchArray = data.text.match(addTermRE); // will return an array with the groups from the regEx
-          let nameInput = matchArray.groups.name;  // This will hold the name the user wishes to add
-          let descInput = matchArray.groups.desc;   // This will hold the definition the user wishes to add
+          let nameInput = matchArray.groups.name;  // This will hold the term the user wishes to tag
+          let descInput = matchArray.groups.desc;   // This will hold the tag the user wishes to apply
 
+          //check if the term already exists in the database. If it doesn't, add it. If it does, tell the user it already exists.
           let checkIfExists = await getDesc(nameInput);
-          console.log(checkIfExists);
-          
-          if (checkIfExists == null) 
+          if (checkIfExists == null) // term isn't in database
           {
-            await sendToDB(nameInput, descInput)
+            await sendToDB(nameInput, descInput); //add to database
             
+            //output confirmation in slack
             let message = "The term " + nameInput + " has been added to the database";
 
             let params = {
@@ -423,8 +424,9 @@ async function handleSlashCommand(data)
               console.error("Error in 1: ", error);
             }
           }
-          else 
+          else //term is in database
           {
+            //output to slack that term already exists
             let message = "The term " + nameInput + " already exists in the database";
 
             let params = {
@@ -440,11 +442,13 @@ async function handleSlashCommand(data)
             {
               console.error("Error in 2: ", error);
             }
-          }
+          }// end of checkifExists if/else
         } 
-        else 
+        else //the text input after the slash command doesn't match the format "/add term: desc", tell the user
         {
-          let message = "Please use \"/add\" OR \"/add term: definition\"";
+          
+          //output to slack that the command formatting was incorrect
+          let message = "Please use \"/add\" OR \"/add [term]: [definition]\"";
 
           let params = {
             channel: data.user_id,
@@ -459,16 +463,144 @@ async function handleSlashCommand(data)
           {
             console.error("Error in 1: ", error);
           }
-        } 
+        }//end of text matching if/else
         break;
       } 
-      else
+      else //User didn't enter text, post the add term modal
       {
         console.log("Text not there");
         await postModal(data, modalData.addTerm);
       }
 
-    break;
+    break; // out of add
+  
+    case "/terms":
+      //check if there's any text after the slash command
+      if(data.text == "") { //if there's no text after the "/terms"...
+        
+        let dictionary = await readFromDB2(); //get all the terms from the database
+        let termsModal = JSON.parse(JSON.stringify(modalData.termsModal)); //get the outline of the terms modal from modalInfo.js and make a useable copy of it
+        let firstletter = ""; //to make letter headers in the modal
+
+        dictionary.forEach(function(entry) { //for each term in the database
+          //if the firstletter var matches the first letter of the term, simply append the term to the modal's blocks
+          if (entry.charAt(0).toUpperCase() == firstletter) {
+            termsModal.blocks.push(
+              {
+                "type": "section",
+                "text": {
+                  "type": "plain_text",
+                  "text": entry,
+                  "emoji": true
+                }
+              }
+            );
+          } else { //the firstletter var doesn't match the first letter of the term
+            //change the firstletter var to match the first letter of the term
+            firstletter = entry.charAt(0).toUpperCase();
+            //append both a header block of the firstletter and a block for the term to the modal's blocks
+            termsModal.blocks.push(
+              {
+                "type": "header",
+                "text": {
+                  "type": "plain_text",
+                  "text": firstletter,
+                  "emoji": true
+                }
+              },
+              {
+                "type": "section",
+                "text": {
+                  "type": "plain_text",
+                  "text": entry,
+                  "emoji": true
+                }
+              }
+            );
+          }
+          
+        });
+
+        // post the newly created terms modal
+        await postModal(data, termsModal);
+      }
+      else //there is text after the "/terms" command
+      {
+        //input validation
+        if (data.text.length != 1 || !(data.text.match(/[A-Z]/i))) { //if text is not a single letter
+          //output to slack that the command formatting was incorrect
+          let message = "Please use \"/terms\" or \"/terms [letter]\"";
+
+          let params = {
+            channel: data.user_id,
+            text: message
+          };
+    
+          try {
+            let val = await Bot.chat.postMessage(params);
+            console.log(val);
+          }
+          catch (error)
+          {
+            console.error("Error in 1: ", error);
+          }
+        } else { //user's text input was a single letter
+          let dictionary = await readFromDB2(); //get all the terms from the database
+          let termsModal = JSON.parse(JSON.stringify(modalData.termsModal)); //get the outline of the terms modal from modalInfo.js and make a useable copy of it
+          let firstletter = data.text.toUpperCase(); //to make the letter header in the modal
+          let termsAdded = false; //to check if any terms were added to the modal
+
+          //append a header block for the firstletter to the modal's blocks
+          termsModal.blocks.push(
+            {
+              "type": "header",
+              "text": {
+                "type": "plain_text",
+                "text": firstletter,
+                "emoji": true
+              }
+            }
+          );
+
+          //for any term starting with firstletter in the database, append a block for it to the modal
+          dictionary.forEach(function(entry) {
+            if (entry.charAt(0).toUpperCase() == firstletter) { //check if firstletter matches the first letter of the term
+              termsAdded = true; //at least one term has been added
+              termsModal.blocks.push(
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "plain_text",
+                    "text": entry,
+                    "emoji": true
+                  }
+                }
+              );
+            } 
+          });
+
+          //if no terms were added (none start with the given letter), append a block to tell the user
+          if(termsAdded == false) { 
+            termsModal = JSON.parse(JSON.stringify(modalData.termsModal)); //reset to the outline of the terms modal (to clear the letter header)
+            //append a block stating that no terms start with the given letter
+            termsModal.blocks.push( 
+              {
+                "type": "section",
+                "text": {
+                  "type": "plain_text",
+                  "text": "There are currently no terms that start with the letter " + firstletter,
+                  "emoji": true
+                }
+              }
+            );
+          }
+
+          //post the newly created terms modal
+          await postModal(data, termsModal);
+        }
+        
+      }
+    break;// out of terms
 
     case "/edit":    
       if (data.text == ("" || '')){
@@ -1140,6 +1272,34 @@ async function readFromDB()
     })
     console.log(listOfTerms);
     return listOfTerms;
+  } else {
+    console.error("There was an error");
+    return "Error";
+  }
+}
+
+async function readFromDB2()
+{
+  let listOfTerms = [];
+
+  const params = {
+    TableName: "AcronymData"
+  }
+
+  let result = await db.scan(params).promise();
+  if (result) {
+    console.log("Thing has been read");
+
+    result.Items.forEach(function(item) {
+      console.log(item.RegName);
+      var tempString = item.RegName + ": " + item.Desc;
+      listOfTerms.push(tempString);
+      
+    })
+    listOfTerms.sort()
+    console.log(listOfTerms);
+    return listOfTerms;
+
   } else {
     console.error("There was an error");
     return "Error";

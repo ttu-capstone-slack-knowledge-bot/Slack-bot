@@ -242,7 +242,7 @@ module.exports = {
   addTerm: {
     "title": {
       "type": "plain_text",
-      "text": "Add Term"
+      "text": "Add"
     },
     "submit": {
       "type": "plain_text",
@@ -362,6 +362,7 @@ module.exports = {
     "private_metadata": "REPLACE_WITH_TERM",
     "callback_id": "deleteTermConfirmation"
   },
+<<<<<<< HEAD
   addTag: {
     "title": {
       "type": "plain_text",
@@ -457,5 +458,14 @@ module.exports = {
       }
     ],
     "callback_id": "addTag"
+=======
+  termsModal: {
+    "title": {
+      "type": "plain_text",
+      "text": "Terms"
+    },
+    "blocks": [],
+    "type": "modal"
+>>>>>>> 5801171ae82f1af67d851313378a937c87f55de1
   }
 }
