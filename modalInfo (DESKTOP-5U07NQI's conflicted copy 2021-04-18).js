@@ -3,16 +3,30 @@ module.exports = {
     "type": "modal",
     "title": {
       "type": "plain_text",
-      "text": "FIRST MODAL",
+      "text": "My App",
+      "emoji": true
+    },
+    "submit": {
+      "type": "plain_text",
+      "text": "Awesome",
+      "emoji": true
+    },
+    "close": {
+      "type": "plain_text",
+      "text": "Whatever",
       "emoji": true
     },
     "blocks": [
       {
         "type": "section",
         "text": {
-          "type": "plain_text",
-          "text": "HEY! I'M A FRICKEN MODAL!",
-          "emoji": true
+          "type": "mrkdwn",
+          "text": "HEY! I'M A FRICKEN MODAL!"
+        },
+        "accessory": {
+          "type": "image",
+          "image_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSSjriUQ6OtX5mGR9OVsfepnvFP9Szvw3XIIA&usqp=CAU",
+          "alt_text": "cute cat"
         }
       }
     ]
@@ -151,7 +165,7 @@ module.exports = {
         "type": "section",
         "text": {
           "type": "mrkdwn",
-          "text": "• Need to know what a term means? Send me a message in the form of *\"@Cappy what does __ mean\"*, and if I know it I'll reply to your message with the definition!\n\n• Want to tell me something and help me learn! Then you can send me a message in the form of *\"@Cappy add ILC : I love Cappy!\"*, and I'll make sure to remember that for the next time somebody asks.\n\n• Want a simple help message without leaving the channel you're currently in? Then you can just message me with *\"@Cappy help\"* and I'll send you a short version of this message!\n\n• Want to add a tag to a term? Send me a message in the form of *\"@Cappy tag ___ with ___\", and I'll tag that term with the term you give me. Make sure the new tag doesn't have any spaces in it though!"
+          "text": "• Need to know what a term means? STILL IN PROGRESS WITH MODAL IMPLEMENTATION\n\n• Want to tell me something and help me learn! Then you can use the slash command */add* and I'll make sure to remember that for the next time somebody asks.\n\n• Made a mistake creating a new term, or caught somebody else's? Then just use */edit* and you can tell me what term you need to edit and what it should be changed to!\n\n• Want a simple help message without leaving the channel you're currently in? IN PROGRESS WITH MODAL IMPLEMENTATION!\n\n• Want to add a tag to a term? IN PROGRESS WITH MODAL IMPLEMENTATION."
         }
       },
       {
@@ -171,7 +185,6 @@ module.exports = {
       }
     ]
   },
-  
   //Clay
   editModal: {
     "type": "modal",
@@ -215,7 +228,7 @@ module.exports = {
           "type": "plain_text_input",
           "action_id": "editTermEntered1"
         },
-        "optional": false
+        "optional": false,
         //"repsonse_action": "errors",
         //  "errors":{
         //    "editTermInput1": "Boo"
@@ -238,67 +251,11 @@ module.exports = {
     ],
     "callback_id": "edit-term"
   }, //end of editModal
-
-    //Clay
-    viewTags: {
-      "type": "modal",
-      "submit": {
-        "type": "plain_text",
-        "text": "Submit",
-        "emoji": true
-      },
-      "close": {
-        "type": "plain_text",
-        "text": "Cancel",
-        "emoji": true
-      },
-      "title": {
-        "type": "plain_text",
-        "text": "Tag Viewer",
-        "emoji": true
-      },
-      "blocks": [
-        {
-          "type": "section",
-          "block_id": "viewTagHeader",
-          "text": {
-            "type": "plain_text",
-            "text": " ",
-            "emoji": true
-          }
-        }, //end of editHeader
-        {
-          "type": "divider"
-        },
-        { //TERM  INPUT
-          "type": "input",
-          "block_id": "viewTagInput",
-          "label": {
-            "type": "plain_text",
-            "text": "What term do you want to view the tags for?",
-            "emoji": true
-          },
-          "element": {
-            "type": "plain_text_input",
-            "action_id": "viewTagEntered"
-          },
-          "optional": false
-          //"repsonse_action": "errors",
-          //  "errors":{
-          //    "editTermInput1": "Boo"
-           // }
-        }, //end of editTermInput1
-      ],
-      "callback_id": "view-term-tag"
-    }, //end of viewTagModal
-
-
-
   //Hannah
   addTerm: {
     "title": {
       "type": "plain_text",
-      "text": "Add"
+      "text": "Add Term"
     },
     "submit": {
       "type": "plain_text",
@@ -342,7 +299,6 @@ module.exports = {
     "type": "modal",
     "callback_id": "addTerm"
   },
-  
  deleteTermModal: {
     "title": {
       "type": "plain_text",
@@ -382,7 +338,7 @@ module.exports = {
         },
         "label": {
           "type": "plain_text",
-          "text": "Please type the term/acronym you want to delete.",
+          "text": "Please type the term/acronym you want to delete?",
           "emoji": true
         }
       }
@@ -418,109 +374,5 @@ module.exports = {
     ],
     "private_metadata": "REPLACE_WITH_TERM",
     "callback_id": "deleteTermConfirmation"
-  },
-  addTag: {
-    "title": {
-      "type": "plain_text",
-      "text": "Add a Tag to a Term",
-      "emoji": true
-    },
-    "submit": {
-      "type": "plain_text",
-      "text": "Submit",
-      "emoji": true
-    },
-    "type": "modal",
-    "close": {
-      "type": "plain_text",
-      "text": "Cancel",
-      "emoji": true
-    },
-    "blocks": [
-      {
-        "type": "input",
-        "block_id": "termToTag",
-        "element": {
-          "type": "plain_text_input",
-          "action_id": "term"
-        },
-        "label": {
-          "type": "plain_text",
-          "text": "Term:",
-          "emoji": true
-        }
-      },
-      {
-        "type": "divider"
-      },
-      {
-        "type": "input",
-        "block_id": "tag",
-        "optional": true,
-        "element": {
-          "type": "plain_text_input",
-          "action_id": "tag"
-        },
-        "label": {
-          "type": "plain_text",
-          "text": "Write a Tag:",
-          "emoji": true
-        }
-      },
-      {
-        "type": "input",
-        "block_id": "tagSelect",
-        "optional": true,
-        "element": {
-          "type": "static_select",
-          "placeholder": {
-            "type": "plain_text",
-            "text": "Select an item",
-            "emoji": true
-          },
-          "options": [
-            {
-              "text": {
-                "type": "plain_text",
-                "text": "Option 1",
-                "emoji": true
-              },
-              "value": "value-0"
-            },
-            {
-              "text": {
-                "type": "plain_text",
-                "text": "Option 2",
-                "emoji": true
-              },
-              "value": "value-1"
-            },
-            {
-              "text": {
-                "type": "plain_text",
-                "text": "Option 3",
-                "emoji": true
-              },
-              "value": "value-2"
-            }
-          ],
-          "action_id": "tagMenu"
-        },
-        "label": {
-          "type": "plain_text",
-          "text": "Choose an existing tag:",
-          "emoji": true
-        }
-      }
-    ],
-    "callback_id": "addTag"
-  },
-  termsModal: {
-    "title": {
-      "type": "plain_text",
-      "text": "Terms"
-    },
-    "blocks": [],
-    "type": "modal"
   }
 }

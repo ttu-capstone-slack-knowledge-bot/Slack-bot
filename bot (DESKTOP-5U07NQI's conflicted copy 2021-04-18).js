@@ -62,9 +62,9 @@ async function handleInterationEvent(data)
 
       if (data.view.callback_id == "getName")
       {
+        // This is just a tester function. We can clear it out later.
         let nameInput = data.view.state.values.nameInput.nameEntered.value;
         console.log(nameInput);
-        console.log("Did that work?");
 
         let message = "Thanks " + nameInput + ", nice to meet you!";
 
@@ -79,59 +79,7 @@ async function handleInterationEvent(data)
         }
         catch (error)
         {
-          console.error("Error in 1: ", error)
-        }
-      }
-      else if (data.view.callback_id == "addTag") {
-        
-        // These two will either be given a value, or null if nothing was entered
-        let termInput = data.view.state.values.termToTag.term.value;
-        let typedTag = data.view.state.values.tag.tag.value;
-
-        // Need these for later
-        let message; 
-        let tag; 
-
-        // Gotta play with this one some, since it's not as straight forward
-        let selectedTag;
-        
-        if (data.view.state.values.tagSelect.tagMenu.selected_option == null) // No option was chosen, so it doesn't even get .text.text
-        {
-          selectedTag = null;
-        }
-        else  // An option was chosen, so now we can get the .text.text to get the actual option
-        {
-          selectedTag = data.view.state.values.tagSelect.tagMenu.selected_option.text.text;
-        }
-        
-        if (typedTag == null && selectedTag == null) {  // Both empty
-          message = "No tags were entered"; 
-        }
-
-        else if (typedTag == null) {  // No tag typed
-          tag = selectedTag; 
-          message = await applyTagToTerm(termInput, tag);
-        }
-
-        else if (selectedTag == null){  // No tag chosen
-          tag = typedTag; 
-          message = await applyTagToTerm(termInput, tag);
-        }
-
-        // What if both a tag is typed and an option is chosen? Then nothing happens. Probably just need an else that picks one.
-
-        let params = {
-          channel: data.user.id,
-          text: message
-        };
-
-        try {
-          let val = await Bot.chat.postMessage(params);
-          console.log(val);
-        }
-        catch (error)
-        {
-          console.error("Error in 1: ", error)
+          console.error("Error in getName: ", error)
         }
       }
       else if (data.view.callback_id == "deleteTerm")
@@ -176,45 +124,44 @@ async function handleInterationEvent(data)
           console.error(error);
         }
       }
-      else if (data.view.callback_id == "edit-term") //Clay
-      {
+    //Clay
+      else if (data.view.callback_id == "edit-term") {
 
         let editTermInput1 = data.view.state.values.editTermInput1.editTermEntered1.value;
-        let termExists = await queryDB(editTermInput1); //returns "result"
-        if (termExists == null) {
-          let message = "Sorry, the term you entered does not exist. I can't edit what is not there. Try /add to create the term.";
+        let termReply = await queryDB(editTermInput1);
+        let regTerm = termReply.Item.RegName;
+        let message = "";   
+        let params;     
+     
+        let define = await getDesc(editTermInput1);
 
-
-          let params = {
+        if (define == null)   // Term didn't exist in the database
+        {
+          message = "Sorry, I don't know that term. Guess I can't edit it!";
+          params = {
             channel: data.user.id,
             text: message
           };
-        
-          try {
-            let val = await Bot.chat.postMessage(params);
-            
-            console.log(val);
-          }
-          catch (error) {
-            console.error("Error posting message " + error);
-          }
-          return giveBack;
         }
-        //let define = await getDesc(editTermInput1); // check the db if the term is there        
-        let dbTermName = termExists.Item.RegName; //Pull out just the term name from the 
-        let message;      
-        
-        //if the two terms match, then continue
-        if (editTermInput1 == dbTermName){
+        else if (define == -1)    // There was an error trying to find it
+        {
+          message = "Sorry, looks like there was an error finding that in the database. Please try again later.";
+          console.error("Error trying to edit a term.");
+          params = {
+            channel: data.user.id,
+            text: message
+          };
+        }
+        else if (editTermInput1 == regTerm){
           let desc = "";
-          //let termFoundMSG = ("(testing) Term Found In DB!");
-          //message = termFoundMSG;
+          let termFoundMSG = ("(testing) Term Found In DB!");
+          message = termFoundMSG;
           let editTermInput2 = data.view.state.values.editTermInput2.editTermEntered2.value;
           desc = editTermInput2;
 
           let updateComplete = await updateDesc(editTermInput1,desc);
           
-          let params = {
+          params = {
             channel: data.user.id,
             text: updateComplete
           };
@@ -226,37 +173,20 @@ async function handleInterationEvent(data)
           catch (error) {
             console.error("Error posting message " + error);
           }
-        }
-        //else if the term isn't in the DB, notify the user.
-        else if (termExists == null) {
-          message = "Sorry, the term you entered does not exist. I can't edit what is not there. Try /add to create the term.";
-
-          let params = {
-            channel: data.user.id,
-            text: message
-          };
-        
-          try {
-            let val = await Bot.chat.postMessage(params);
-            console.log(val);
-          }
-          catch (error) {
-            console.error("Error posting message " + error);
-          }
-        }
-
+        } //end of nested if
       } 
-      else if (data.view.callback_id == "addTerm")
+      else if (data.view.callback_id == "addTerm") //Hannah
       {
-        let nameInput = data.view.state.values.nameInput.nameEntered.value; //get the term's nameInput from modal payload
-        let descInput = data.view.state.values.descInput.descEntered.value; //get the terms' descInput from modal payload
+        let nameInput = data.view.state.values.nameInput.nameEntered.value;
+        let descInput = data.view.state.values.descInput.descEntered.value;
 
-        let checkIfExists = await getDesc(nameInput); //check if the term already exists in the database
-        if (checkIfExists == null) //if the term doens't exist, add it and tell the user
+        let checkIfExists = await getDesc(nameInput);
+        console.log(checkIfExists);
+        
+        if (checkIfExists == null) 
         {
-          await sendToDB(nameInput, descInput); //add the term to the database
+          await sendToDB(nameInput, descInput)
 
-          //output to slack that term was successfully added
           let message = "The term " + nameInput + " has been added to the database";
           console.log(data);
 
@@ -274,9 +204,8 @@ async function handleInterationEvent(data)
             console.error("Error in 1: ", error);
           }
         }
-        else //the term already exists, tell the user without adding it
+        else 
         {
-          //out to slack that the term already exists
           let message = "The term " + nameInput + " already exists in the database";
 
           let params = {
@@ -294,8 +223,7 @@ async function handleInterationEvent(data)
           }
         }
       } 
-
-    break; // Break view_submission block
+    break;
   } //end of switch block
 
   // Return the response message
@@ -315,9 +243,9 @@ async function handleSlashCommand(data)
 
   switch (command)
   {
-    case "/testing":    
+    case "/testing":
       await postModal(data, modalData.getNameModal);
-    break; // out of testing
+      break;
 
     case "/delete":
       if (data.text === '')
@@ -362,52 +290,25 @@ async function handleSlashCommand(data)
         await postModal(data, message);
       }
 
-    break;
-
-    case "/addtag":
-
-      let tags = await getListOfTags(); 
-      let newOptionsArray = []; 
-      let newOption;
-      let i; 
-      for (i = 0; i < tags.regular.length; i++) {
-          newOption = { 
-            text: {
-              type: "plain_text",
-              text: tags.regular[i]
-            },
-            value: "Choice " + i
-          };
-        newOptionsArray.push(newOption);
-      }
-
-      let newModal = JSON.parse(JSON.stringify(modalData.addTag));
-
-      newModal.blocks[3].element.options=newOptionsArray;
-
-      await postModal(data, newModal);
-
       break;
 
     case "/add":
 
-      if(data.text != "") { //if user entered any text after "/add", continue
+      if(data.text != "") {
+        let addTermRE = /(?<name>[a-zA-Z0-9 ]{1,})(:) (?<desc>[_a-zA-Z0-9 -]{1,})/i; // Will match anything in form of "term: desc"
 
-        let addTermRE = /(?<name>[a-zA-Z0-9 ]{1,})(:) (?<desc>[_a-zA-Z0-9-]{1,})/i; // Will match anything in form of "term: desc"
-
-        if (data.text.search(addTermRE) != -1) { //if text input after the slash command matches the format "/add term: desc", continue
-
+        if (data.text.search(addTermRE) != -1) {
           const matchArray = data.text.match(addTermRE); // will return an array with the groups from the regEx
-          let nameInput = matchArray.groups.name;  // This will hold the term the user wishes to tag
-          let descInput = matchArray.groups.desc;   // This will hold the tag the user wishes to apply
+          let nameInput = matchArray.groups.name;  // This will hold the name the user wishes to add
+          let descInput = matchArray.groups.desc;   // This will hold the definition the user wishes to add
 
-          //check if the term already exists in the database. If it doesn't, add it. If it does, tell the user it already exists.
           let checkIfExists = await getDesc(nameInput);
-          if (checkIfExists == null) // term isn't in database
+          console.log(checkIfExists);
+          
+          if (checkIfExists == null) 
           {
-            await sendToDB(nameInput, descInput); //add to database
+            await sendToDB(nameInput, descInput)
             
-            //output confirmation in slack
             let message = "The term " + nameInput + " has been added to the database";
 
             let params = {
@@ -424,9 +325,8 @@ async function handleSlashCommand(data)
               console.error("Error in 1: ", error);
             }
           }
-          else //term is in database
+          else 
           {
-            //output to slack that term already exists
             let message = "The term " + nameInput + " already exists in the database";
 
             let params = {
@@ -442,13 +342,11 @@ async function handleSlashCommand(data)
             {
               console.error("Error in 2: ", error);
             }
-          }// end of checkifExists if/else
+          }
         } 
-        else //the text input after the slash command doesn't match the format "/add term: desc", tell the user
+        else 
         {
-          
-          //output to slack that the command formatting was incorrect
-          let message = "Please use \"/add\" OR \"/add [term]: [definition]\"";
+          let message = "Please use \"/add\" OR \"/add term: definition\"";
 
           let params = {
             channel: data.user_id,
@@ -463,150 +361,22 @@ async function handleSlashCommand(data)
           {
             console.error("Error in 1: ", error);
           }
-        }//end of text matching if/else
+        } 
         break;
       } 
-      else //User didn't enter text, post the add term modal
+      else
       {
         console.log("Text not there");
         await postModal(data, modalData.addTerm);
       }
 
-    break; // out of add
-  
-    case "/terms":
-      //check if there's any text after the slash command
-      if(data.text == "") { //if there's no text after the "/terms"...
-        
-        let dictionary = await readFromDB2(); //get all the terms from the database
-        let termsModal = JSON.parse(JSON.stringify(modalData.termsModal)); //get the outline of the terms modal from modalInfo.js and make a useable copy of it
-        let firstletter = ""; //to make letter headers in the modal
-
-        dictionary.forEach(function(entry) { //for each term in the database
-          //if the firstletter var matches the first letter of the term, simply append the term to the modal's blocks
-          if (entry.charAt(0).toUpperCase() == firstletter) {
-            termsModal.blocks.push(
-              {
-                "type": "section",
-                "text": {
-                  "type": "plain_text",
-                  "text": entry,
-                  "emoji": true
-                }
-              }
-            );
-          } else { //the firstletter var doesn't match the first letter of the term
-            //change the firstletter var to match the first letter of the term
-            firstletter = entry.charAt(0).toUpperCase();
-            //append both a header block of the firstletter and a block for the term to the modal's blocks
-            termsModal.blocks.push(
-              {
-                "type": "header",
-                "text": {
-                  "type": "plain_text",
-                  "text": firstletter,
-                  "emoji": true
-                }
-              },
-              {
-                "type": "section",
-                "text": {
-                  "type": "plain_text",
-                  "text": entry,
-                  "emoji": true
-                }
-              }
-            );
-          }
-          
-        });
-
-        // post the newly created terms modal
-        await postModal(data, termsModal);
-      }
-      else //there is text after the "/terms" command
-      {
-        //input validation
-        if (data.text.length != 1 || !(data.text.match(/[A-Z]/i))) { //if text is not a single letter
-          //output to slack that the command formatting was incorrect
-          let message = "Please use \"/terms\" or \"/terms [letter]\"";
-
-          let params = {
-            channel: data.user_id,
-            text: message
-          };
-    
-          try {
-            let val = await Bot.chat.postMessage(params);
-            console.log(val);
-          }
-          catch (error)
-          {
-            console.error("Error in 1: ", error);
-          }
-        } else { //user's text input was a single letter
-          let dictionary = await readFromDB2(); //get all the terms from the database
-          let termsModal = JSON.parse(JSON.stringify(modalData.termsModal)); //get the outline of the terms modal from modalInfo.js and make a useable copy of it
-          let firstletter = data.text.toUpperCase(); //to make the letter header in the modal
-          let termsAdded = false; //to check if any terms were added to the modal
-
-          //append a header block for the firstletter to the modal's blocks
-          termsModal.blocks.push(
-            {
-              "type": "header",
-              "text": {
-                "type": "plain_text",
-                "text": firstletter,
-                "emoji": true
-              }
-            }
-          );
-
-          //for any term starting with firstletter in the database, append a block for it to the modal
-          dictionary.forEach(function(entry) {
-            if (entry.charAt(0).toUpperCase() == firstletter) { //check if firstletter matches the first letter of the term
-              termsAdded = true; //at least one term has been added
-              termsModal.blocks.push(
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "plain_text",
-                    "text": entry,
-                    "emoji": true
-                  }
-                }
-              );
-            } 
-          });
-
-          //if no terms were added (none start with the given letter), append a block to tell the user
-          if(termsAdded == false) { 
-            termsModal = JSON.parse(JSON.stringify(modalData.termsModal)); //reset to the outline of the terms modal (to clear the letter header)
-            //append a block stating that no terms start with the given letter
-            termsModal.blocks.push( 
-              {
-                "type": "section",
-                "text": {
-                  "type": "plain_text",
-                  "text": "There are currently no terms that start with the letter " + firstletter,
-                  "emoji": true
-                }
-              }
-            );
-          }
-
-          //post the newly created terms modal
-          await postModal(data, termsModal);
-        }
-        
-      }
-    break;// out of terms
+    break;
 
     case "/edit":    
       if (data.text == ("" || '')){
         await postModal(data, modalData.editModal);
       }
-      else if (data.text != null){
+      else if (data.text != ("" || '')){
         let editTermRE = /(?<term>[\w]{1,}) (with) (?<desc>[\w ]+)/i; //TESTING edit. @Bot edit term with desc. 
         let response = "";
         //if (data.event.text.search(editTermRE) != -1) {
@@ -616,11 +386,28 @@ async function handleSlashCommand(data)
         let wordToEdit = matchArray.groups.term;  // This will hold the term the user wishes to edit
         let descToApply = matchArray.groups.desc; // This will hold the desc the user wishes to apply
         
+        response = editTermInDatabase(worldToEdit, discToApply)
 
+        //Notify the user if the term was updated or if it failed
+        let params = {
+          channel: data.user_id,
+          text: response
+        };
+
+        try {
+          let val = await Bot.chat.postMessage(params);
+          console.log(val);
+        }
+        catch (error)
+        {
+          console.error("Error in 1: ", error);
+        }
+      
+/*
         let termExists = await getDesc(wordToEdit); // Store data in termExists if the term is in the DB
         if (termExists == null) // Term doesn't exist
         {
-          response = "Sorry, the term you entered does not exist. I can't edit what is not there. Try /add to create the term.";
+          response = "Sorry, that term doesn't exist yet, so I can't edit it.";
 
           let params = {
             channel: data.user_id,
@@ -673,84 +460,17 @@ async function handleSlashCommand(data)
             console.error("Error in 1: ", error);
           }
         }
+*/
+
+        // Give the response back to the user in a thread.
+        //await sendMessageToSlack(params, data, 1);
+        //}
+        // else {
+        //   console.log("Error: Term update failed");
+        // }
       } 
     break; //out of edit
-
-    case "/viewTags":    
-      if (data.text == ("" || '')){
-        await postModal(data, modalData.viewTags);
-      }
-      else if (data.text != null){
-        let viewTagTermRE = /(?<term>[\w]{1,})/i; 
-        let response = "";
-        //if (data.event.text.search(editTermRE) != -1) {
-        console.log ("Shotcut command used (viewTags)");
-
-        const matchArray = data.text.match(viewTagTermRE); // will return an array with the groups from the regEx
-        let wordToGetTagsFrom = matchArray.groups.term;  // This will hold the term the user wishes to edit
-        
-        let termExists = await getDesc(wordToGetTagsFrom); // Store data in termExists if the term is in the DB
-        if (termExists == null) // Term doesn't exist
-        {
-          response = "Sorry, the term you entered does not exist. I can't view what is not there. Try /add to create the term.";
-
-          let params = {
-            channel: data.user_id,
-            text: response
-          };
-
-          try {
-            let val = await Bot.chat.postMessage(params);
-            console.log(val);
-          }
-          catch (error)
-          {
-            console.error("Error in 1: ", error);
-          }
-        }
-        else if (termExists == -1) // There was some sort of database error
-        {
-          response = "Sorry, there was an error trying to retrieve the term.";
-
-          let params = {
-            channel: data.user_id,
-            text: response
-          };
-
-          try {
-            let val = await Bot.chat.postMessage(params);
-            console.log(val);
-          }
-          catch (error)
-          {
-            console.error("Error in 1: ", error);
-          }
-        }
-        else // Term exists, so post the tags associated with the given term.
-        {
-          //console.log("Tag exists: Entering applyTagToTerm");
-          response = await getTagsForTerm(wordToGetTagsFrom);
-          console.log("Testing: Sucessfully posted term's tags using shortcut.");
-          let params = {
-            channel: data.user_id,
-            text: response
-          };
-
-          try {
-            let val = await Bot.chat.postMessage(params);
-            console.log(val);
-          }
-          catch (error)
-          {
-            console.error("Error in 1: ", error);
-          }
-        }
-      } 
-    break; //out of viewTags
-
-
-  } // end of switch 
-
+    }
   return giveBack;
 } // end of slash function
 
@@ -1352,34 +1072,6 @@ async function readFromDB()
   }
 }
 
-async function readFromDB2()
-{
-  let listOfTerms = [];
-
-  const params = {
-    TableName: "AcronymData"
-  }
-
-  let result = await db.scan(params).promise();
-  if (result) {
-    console.log("Thing has been read");
-
-    result.Items.forEach(function(item) {
-      console.log(item.RegName);
-      var tempString = item.RegName + ": " + item.Desc;
-      listOfTerms.push(tempString);
-      
-    })
-    listOfTerms.sort()
-    console.log(listOfTerms);
-    return listOfTerms;
-
-  } else {
-    console.error("There was an error");
-    return "Error";
-  }
-}
-
 async function sendToDB(name, desc)
 {
   const table = "AcronymData";
@@ -1448,6 +1140,55 @@ async function deleteTermFromDatabase(term)
       console.error("There was an error deleting a term from the database.");
       console.error(error);
       message = "Sorry, there was an error deleting the term. Please try again later.";
+    }
+  }
+
+  // Return the message to be sent back to the user
+  return message;
+}
+
+
+// Function to be used for editing a term in the database.
+// Accepts the term, returns a string message based on if the term was edited or not.
+// Clay. Modified Bens.
+async function editTermInDatabase(term, desc)
+{
+  // Prepare the return variable
+  let message = "";
+
+  // First we gotta check if the term is even in the database
+  let define = await getDesc(term);
+
+  if (define == null)   // Term didn't exist in the database
+  {
+    message = "Sorry, I don't know that term. Guess I can't edit it!";
+  }
+  else if (define == -1)    // There was an error trying to find it
+  {
+    message = "Sorry, looks like there was an error finding that in the database. Please try again later.";
+    console.error("Error trying to edit a term.");
+  }
+  else  // Found the term
+  {    
+    // Prepare the payload to send to Dynamo
+    const editParams = {
+      TableName: termTable,
+      Key: {
+        LowerName: term.toLowerCase()
+      }
+    };
+
+    // Try editing the term!
+    try {
+      message = await updateDesc(editTermInput1,desc);
+      console.log(result);
+      //message = term + " has officially been edited!";
+    }
+    catch (error)   // Uh oh, there was an error. Log it and notify the user.
+    {
+      console.error("There was an error editing a term from the database.");
+      console.error(error);
+      message = "Sorry, there was an error editing the term. Please try again later.";
     }
   }
 
@@ -1748,3 +1489,4 @@ async function addTagToListOfTags(newTag)
   // We did it. So now just return 1 to say success, incase we want to add validation
   return 1;
 }
+
