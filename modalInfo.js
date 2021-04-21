@@ -239,66 +239,47 @@ module.exports = {
     "callback_id": "edit-term"
   }, //end of editModal
 
-    //Clay
-    viewTags: {
-      "type": "modal",
-      "submit": {
-        "type": "plain_text",
-        "text": "Submit",
-        "emoji": true
-      },
-      "close": {
-        "type": "plain_text",
-        "text": "Cancel",
-        "emoji": true
-      },
-      "title": {
-        "type": "plain_text",
-        "text": "Tag Viewer",
-        "emoji": true
-      },
-      "blocks": [
-        {
-          "type": "section",
-          "block_id": "viewTagHeader",
-          "text": {
-            "type": "plain_text",
-            "text": " ",
-            "emoji": true
-          }
-        }, //end of editHeader
-        {
-          "type": "divider"
+  viewTagModal:  {
+    "type": "modal",
+    "submit": {
+      "type": "plain_text",
+      "text": "Submit",
+      "emoji": true
+    },
+    "close": {
+      "type": "plain_text",
+      "text": "Cancel",
+      "emoji": true
+    },
+    "title": {
+      "type": "plain_text",
+      "text": "View Tags",
+      "emoji": true
+    },
+    "blocks": [
+      {
+        "type": "input",
+        "block_id": "termInput",
+        "label": {
+          "type": "plain_text",
+          "text": "Which term's tags do you want to view?",
+          "emoji": false
         },
-        { //TERM  INPUT
-          "type": "input",
-          "block_id": "viewTagInput",
-          "label": {
-            "type": "plain_text",
-            "text": "What term do you want to view the tags for?",
-            "emoji": true
-          },
-          "element": {
-            "type": "plain_text_input",
-            "action_id": "viewTagEntered"
-          },
-          "optional": false
-          //"repsonse_action": "errors",
-          //  "errors":{
-          //    "editTermInput1": "Boo"
-           // }
-        }, //end of editTermInput1
-      ],
-      "callback_id": "view-term-tag"
-    }, //end of viewTagModal
-
-
+        "element": {
+          "type": "plain_text_input",
+          "action_id": "termEntered"
+        },
+        "optional": false
+      }
+    ],
+    "callback_id": "view-term-tags"
+  },
 
   //Hannah
   addTerm: {
     "title": {
       "type": "plain_text",
-      "text": "Add"
+      "text": "Add Term"
     },
     "submit": {
       "type": "plain_text",
@@ -418,109 +399,5 @@ module.exports = {
     ],
     "private_metadata": "REPLACE_WITH_TERM",
     "callback_id": "deleteTermConfirmation"
-  },
-  addTag: {
-    "title": {
-      "type": "plain_text",
-      "text": "Add a Tag to a Term",
-      "emoji": true
-    },
-    "submit": {
-      "type": "plain_text",
-      "text": "Submit",
-      "emoji": true
-    },
-    "type": "modal",
-    "close": {
-      "type": "plain_text",
-      "text": "Cancel",
-      "emoji": true
-    },
-    "blocks": [
-      {
-        "type": "input",
-        "block_id": "termToTag",
-        "element": {
-          "type": "plain_text_input",
-          "action_id": "term"
-        },
-        "label": {
-          "type": "plain_text",
-          "text": "Term:",
-          "emoji": true
-        }
-      },
-      {
-        "type": "divider"
-      },
-      {
-        "type": "input",
-        "block_id": "tag",
-        "optional": true,
-        "element": {
-          "type": "plain_text_input",
-          "action_id": "tag"
-        },
-        "label": {
-          "type": "plain_text",
-          "text": "Write a Tag:",
-          "emoji": true
-        }
-      },
-      {
-        "type": "input",
-        "block_id": "tagSelect",
-        "optional": true,
-        "element": {
-          "type": "static_select",
-          "placeholder": {
-            "type": "plain_text",
-            "text": "Select an item",
-            "emoji": true
-          },
-          "options": [
-            {
-              "text": {
-                "type": "plain_text",
-                "text": "Option 1",
-                "emoji": true
-              },
-              "value": "value-0"
-            },
-            {
-              "text": {
-                "type": "plain_text",
-                "text": "Option 2",
-                "emoji": true
-              },
-              "value": "value-1"
-            },
-            {
-              "text": {
-                "type": "plain_text",
-                "text": "Option 3",
-                "emoji": true
-              },
-              "value": "value-2"
-            }
-          ],
-          "action_id": "tagMenu"
-        },
-        "label": {
-          "type": "plain_text",
-          "text": "Choose an existing tag:",
-          "emoji": true
-        }
-      }
-    ],
-    "callback_id": "addTag"
-  },
-  termsModal: {
-    "title": {
-      "type": "plain_text",
-      "text": "Terms"
-    },
-    "blocks": [],
-    "type": "modal"
   }
 }

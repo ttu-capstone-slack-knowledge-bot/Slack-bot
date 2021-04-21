@@ -82,6 +82,47 @@ async function handleInterationEvent(data)
           console.error("Error in 1: ", error)
         }
       }
+      else if (data.view.callback_id == "view-term-tags") { 
+        let returnedTags;         
+        let input = data.view.state.values.termInput.termEntered.value;
+        console.log(input);
+        //let termExists = await queryDB(input); //returns "result"
+        
+        /*if (termExists == null) {
+          let message = "Sorry, the term you entered does not exist. Please check for spelling.";
+          let params = {
+            channel: data.user.id,
+            text: message
+          };          
+          try {
+            let val = await Bot.chat.postMessage(params);
+            console.log(val);
+            return giveBack;
+          }
+          catch (error) {
+            console.error("Error posting message " + error);
+          }
+        }
+        */
+          console.log("entered the termExists if block");
+          returnedTags = getTagsForTerm(input);
+          let message = "Term match. Here are the tags:" + returnedTags.RegTags;
+
+          let params = {
+            channel: data.user.id,
+            text: message
+          };
+          
+          try {
+            let val = await Bot.chat.postMessage(params);
+            console.log(val);
+          }
+          catch (error) {
+            console.error("Error posting message " + error);
+          }
+        
+      }
+
       else if (data.view.callback_id == "addTag") {
         
         // These two will either be given a value, or null if nothing was entered
@@ -294,6 +335,9 @@ async function handleInterationEvent(data)
           }
         }
       } 
+
+
+
 
     break; // Break view_submission block
   } //end of switch block
@@ -676,11 +720,11 @@ async function handleSlashCommand(data)
       } 
     break; //out of edit
 
-    case "/viewTags":    
-      if (data.text == ("" || '')){
-        await postModal(data, modalData.viewTags);
-      }
-      else if (data.text != null){
+    case "/viewtags":   
+    if (data.text == ("" || '')){
+      await postModal(data, modalData.viewTagModal);
+    }
+      else {
         let viewTagTermRE = /(?<term>[\w]{1,})/i; 
         let response = "";
         //if (data.event.text.search(editTermRE) != -1) {
@@ -1641,6 +1685,48 @@ async function getDataObject(data, method)
 
   return dataObject;
 
+}
+
+async function getTags(data)
+{
+  // set up some variables
+  let result;
+
+  // First, we gotta send a request to the database for the "TagList" item
+  let params = {
+    TableName: "Metadata",
+    Key: {
+      DataType: "TagList"
+    }
+  };
+
+  try{
+    console.log("Requesting item from database");
+    result = await db.getTags(params).promise();
+    console.log("Got the item");
+
+    if (JSON.stringify(result) == "{}")  // Nothing was found in the database
+    {
+      console.log("Didn't get anything from the database");
+      console.log(JSON.stringify(result));
+      return null;
+    } 
+  }
+  catch (error) {   // Some sort of error within dynamodb
+    console.error("There was an error accessing the database.")
+    console.error(error);
+    return -1;
+  }
+
+  // Cool, we have the item. So now we just extract the arrays and return them
+  let arrayHolder = {
+    lower: result.Item.LowerTags,
+    regular: result.Item.RegTags
+  };
+  console.log("Got the arrays");
+  console.log(arrayHolder);
+
+  return arrayHolder;
 }
 
 // This function returns an object holding arrays of all tags applied to the database, both regular and all lowercase. 
