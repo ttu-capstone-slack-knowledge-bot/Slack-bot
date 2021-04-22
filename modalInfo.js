@@ -362,7 +362,6 @@ module.exports = {
     "private_metadata": "REPLACE_WITH_TERM",
     "callback_id": "deleteTermConfirmation"
   },
-<<<<<<< HEAD
   addTag: {
     "title": {
       "type": "plain_text",
@@ -458,7 +457,6 @@ module.exports = {
       }
     ],
     "callback_id": "addTag"
-=======
   termsModal: {
     "title": {
       "type": "plain_text",
@@ -466,6 +464,5 @@ module.exports = {
     },
     "blocks": [],
     "type": "modal"
->>>>>>> 5801171ae82f1af67d851313378a937c87f55de1
   }
 }
