@@ -523,7 +523,7 @@ async function handleSlashCommand(data)
       } 
       else if (data.text != null) {
         let searchRE = /(?<term>[\w]{1,})/i;
-          if (data.text.search(searchRE) != -1) {
+        if (data.text.search(searchRE) != -1) {
           let response = "";
           console.log ("Shortcut command used (search)");
 
@@ -536,8 +536,8 @@ async function handleSlashCommand(data)
           console.log("Desc is: " + termExists);
         
           if (termExists == null) // Term doesn't exist
-        {
-          searchTerm = searchTerm.toUpperCase();
+          {
+            searchTerm = searchTerm.toUpperCase();
             let queryModal = JSON.parse(JSON.stringify(modalData.queryModal));
             queryModal.blocks.push(
               {
@@ -563,78 +563,66 @@ async function handleSlashCommand(data)
 
             await postModal(trigger, queryModal);
 
-          try {
-           
-            console.log(val);
-          }
-          catch (error)
-          {
-            console.error("Error in 1: ", error);
-          }
+            try {
+            
+              console.log(val);
+            }
+            catch (error)
+            {
+              console.error("Error in 1: ", error);
+            }
           } 
-         else if (termExists == -1) // There was some sort of database error
-        {
-          response = "Sorry, there was an error trying to retrieve the term.";
-
-          let params = {
-            channel: data.user_id,
-            text: response
-          };
-
-          try {
-            let val = await Bot.chat.postMessage(params);
-            console.log(val);
-          }
-          catch (error)
+          else if (termExists == -1) // There was some sort of database error
           {
-            console.error("Error in 1: ", error);
+            response = "Sorry, there was an error trying to retrieve the term.";
+
+            await sendMessageToDM(response, user);
           }
-          }
-         else // Term exists, so apply the new description.
+          else // Term exists, so apply the new description.
           {
-        
-          console.log("Testing: Sucessfully found term using shortcut.");
-          console.log(termExists);
+          
+            console.log("Testing: Sucessfully found term using shortcut.");
+            console.log(termExists);
 
-          response = termExists;
-          let params = {
-            channel: data.user_id,
-            text: response
-          };
+            response = termExists;
+            let params = {
+              channel: data.user_id,
+              text: response
+            };
 
-          try {
-            searchTerm = searchTerm.toUpperCase();
-            let queryModal = JSON.parse(JSON.stringify(modalData.queryModal));
-            queryModal.blocks.push(
-              {
-                "type": "section",
-                "text": {
-                  "type": "plain_text",
-                  "text": ":mag: Searching for term: " + searchTerm,
-                  "emoji": true
+            try {
+              searchTerm = searchTerm.toUpperCase();
+              let queryModal = JSON.parse(JSON.stringify(modalData.queryModal));
+              queryModal.blocks.push(
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "plain_text",
+                    "text": ":mag: Searching for term: " + searchTerm,
+                    "emoji": true
+                  }
+                },
+                {
+                  "type": "divider"
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "plain_text",
+                    "text":  searchTerm + ": " + termExists,
+                    "emoji": true
+                  }
                 }
-              },
-              {
-                "type": "divider"
-              },
-              {
-                "type": "section",
-                "text": {
-                  "type": "plain_text",
-                  "text":  searchTerm + ": " + termExists,
-                  "emoji": true
-                }
-              }
-            );
+              );
 
-            await postModal(trigger, queryModal);
+              await postModal(trigger, queryModal);
 
-            console.log(val);
-          } 
-          catch (error)
-          {
-            console.error("Error in 1: ", error);
-          }
+              console.log(val);
+            } 
+            catch (error)
+            {
+              console.error("Error in 1: ", error);
+            }
           }
         } 
       } 
