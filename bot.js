@@ -181,7 +181,7 @@ async function handleInteractionEvent(data)
           //out to slack that the term already exists
           let message = "The term " + nameInput + " already exists in the database";
 
-         await sendMessageToDM(messager, user);
+         await sendMessageToDM(message, user);
         }
       } 
 
@@ -799,6 +799,12 @@ async function getTagsForTerm(term)
 
   // Get everything about the term. 
   termData = await queryDB(term);
+
+  if (termData == null)
+  {
+    // Term doesn't exist
+    return -1;
+  }
   
   // Check to see if it has any tags
   if (termData.Item.hasOwnProperty("LowerTags")) // Already has tags
@@ -867,7 +873,13 @@ async function applyTagToTerm(term, newTag)
   let result;
 
   // Check to see if the term's database entry has the tag attribute yet, since it isn't required when putting something in the database.
-  if (tagObject === null) // Term doesn't the tag attribute yet
+  if (tagObject == -1)  // Term doesn't exist
+  {
+    console.log("Term to tag doesn't exist");
+    response = "Sorry, that term doesn't exist yet. You can add it using /add if you want me to know it!";
+    return response;
+  }
+  else if (tagObject === null) // Term doesn't the tag attribute yet
   {
     regTags = [newTag];
     lowerTags = [newTag.toLowerCase()];
@@ -1240,7 +1252,7 @@ async function sendMessageToSlackChannel(message, data, method)
 async function sendMessageToDM(message, user)
 {
   // Send a DM to the invoking user
-  params = {
+  let params = {
     channel: user,
     text: message
   };
