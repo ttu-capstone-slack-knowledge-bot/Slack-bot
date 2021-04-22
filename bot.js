@@ -50,15 +50,14 @@ async function handleInteractionEvent(data)
     body: ""
   }
 
-  // The user that caused this function to be called. Used for sending back DM's to them.
-  const user = data.user.id;
-
-  // Used for deciding what exactly was the event that triggered this function.
-  const interaction = data.type;
+  const user = data.user.id;  // The user that caused this function to be called. Used for sending back DM's to them.
+  const interaction = data.type;  // Used for deciding what exactly was the event that triggered this function.
+  const trigger = data.trigger_id;  // Used when calling postModal. This is the trigger needed to post the modal
 
   switch (interaction)
   {
     case "block_actions": // general interaction. Most likely it's a button press
+<<<<<<< HEAD
 
       // Log the payload so I can see it
       console.log("Button has been pressed");
@@ -93,6 +92,9 @@ async function handleInteractionEvent(data)
       }
 
       // await postModal(data, modalData.firstModal);
+=======
+      await postModal(trigger, modalData.firstModal);
+>>>>>>> main
     break;
 
     case "view_submission": // submit button on a modal was pressed
@@ -233,22 +235,22 @@ async function handleSlashCommand(data)
     body: ""
   }
 
-  // User that used the slash command. Used for sending DM's back to them.
-  const user = data.user_id;
-
-  // Get the command from the payload so we can decide what to do with it.
-  const command = data.command;
+  const command = data.command;  // Get the command from the payload so we can decide what to do with it.
+  const user = data.user_id;  // User that used the slash command. Used for sending DM's back to them.
+  const trigger = data.trigger_id;
+  
+ 
 
   switch (command)
   {
     case "/testing":    
-      await postModal(data, modalData.getNameModal);
+      await postModal(trigger, modalData.getNameModal);
     break; // out of testing
 
     case "/delete":
       if (data.text === '')
       {
-        await postModal(data, modalData.deleteTermModal);
+        await postModal(trigger, modalData.deleteTermModal);
       }
       else  // User sent a word with the slash command, so skip the modal
       {
@@ -285,7 +287,7 @@ async function handleSlashCommand(data)
         // Now post the confirmation modal. If they click yes, then we'll handle it in the HandleInteractionEvent method.
         console.log(message);
 
-        await postModal(data, message);
+        await postModal(trigger, message);
       }
 
     break;
@@ -311,7 +313,7 @@ async function handleSlashCommand(data)
 
       newModal.blocks[3].element.options=newOptionsArray;
 
-      await postModal(data, newModal);
+      await postModal(trigger, newModal);
 
       break;
 
@@ -357,7 +359,7 @@ async function handleSlashCommand(data)
       else //User didn't enter text, post the add term modal
       {
         console.log("Text not there");
-        await postModal(data, modalData.addTerm);
+        await postModal(trigger, modalData.addTerm);
       }
 
     break; // out of add
@@ -410,7 +412,7 @@ async function handleSlashCommand(data)
         });
 
         // post the newly created terms modal
-        await postModal(data, termsModal);
+        await postModal(trigger, termsModal);
       }
       else //there is text after the "/terms" command
       {
@@ -473,7 +475,7 @@ async function handleSlashCommand(data)
           }
 
           //post the newly created terms modal
-          await postModal(data, termsModal);
+          await postModal(trigger, termsModal);
         }
         
       }
@@ -481,7 +483,7 @@ async function handleSlashCommand(data)
 
     case "/edit":    
       if (data.text == ("" || '')){
-        await postModal(data, modalData.editModal);
+        await postModal(trigger, modalData.editModal);
       }
       else if (data.text != null){
         let editTermRE = /(?<term>[\w]{1,}) (with) (?<desc>[\w ]+)/i; //TESTING edit. @Bot edit term with desc. 
@@ -563,7 +565,7 @@ async function handleSlashCommand(data)
               }
             );
 
-            await postModal(data, queryModal);
+            await postModal(trigger, queryModal);
 
           try {
            
@@ -629,7 +631,7 @@ async function handleSlashCommand(data)
               }
             );
 
-            await postModal(data, queryModal);
+            await postModal(trigger, queryModal);
 
             console.log(val);
           } 
@@ -1426,10 +1428,10 @@ async function sendMessageToDM(message, user)
 }
 
 // Function for posting a modal to a user's view. Mostly made to keep from copying and pasting the same code all over the place.
-async function postModal(data, viewData)
+async function postModal(trigger, viewData)
 {
   let modal = {
-    trigger_id: data.trigger_id,
+    trigger_id: trigger,
     view: viewData
   }
 
