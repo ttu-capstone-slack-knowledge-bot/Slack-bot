@@ -59,7 +59,40 @@ async function handleInteractionEvent(data)
   switch (interaction)
   {
     case "block_actions": // general interaction. Most likely it's a button press
-      await postModal(data, modalData.firstModal);
+
+      // Log the payload so I can see it
+      console.log("Button has been pressed");
+      console.log(data);
+
+      // Now check which section of buttons got pressed
+      if (data.actions[0].block_id == "Main_Buttons") // Main Row of buttons
+      {
+        // Store the button id
+        let buttonType = data.actions[0].action_id;
+        console.log("Button ID: " + buttonType);
+
+        switch (buttonType)
+        {
+          case "add":
+           
+          break;
+
+          case "query":
+
+          break;
+
+          case "edit":
+
+          break;
+
+          case "delete":
+
+          break;
+        }
+
+      }
+
+      // await postModal(data, modalData.firstModal);
     break;
 
     case "view_submission": // submit button on a modal was pressed

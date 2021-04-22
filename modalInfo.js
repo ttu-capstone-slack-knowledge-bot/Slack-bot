@@ -157,11 +157,11 @@ module.exports = {
             "type": "button",
             "text": {
               "type": "plain_text",
-              "text": "Search Term",
+              "text": "Query Term",
               "emoji": true
             },
-            "value": "Search_Button",
-            "action_id": "search"
+            "value": "Query_Button",
+            "action_id": "query"
           },
           {
             "type": "button",
