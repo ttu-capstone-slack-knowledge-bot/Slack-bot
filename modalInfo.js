@@ -110,8 +110,8 @@ module.exports = {
     "callback_id": "getName"
   },
   homeTab: {
-    type: 'home',
-    blocks: [
+    "type": "home",
+    "blocks": [
       {
         "type": "header",
         "text": {
@@ -127,6 +127,64 @@ module.exports = {
           "text": "\tI have been added to your workspace, and it's my job to help you! I can fetch definitions for simple terms and acronyms if I know them, or you can tell me what certain acronyms mean to help expand my knowledge base!\n\tBe sure to check back here often, as my feature set is constantly expanding!",
           "emoji": true
         }
+      },
+      {
+        "type": "divider"
+      },
+      {
+        "type": "header",
+        "text": {
+          "type": "plain_text",
+          "text": "Quick Actions!",
+          "emoji": true
+        }
+      },
+      {
+        "type": "actions",
+        "block_id": "Main_Buttons",
+        "elements": [
+          {
+            "type": "button",
+            "text": {
+              "type": "plain_text",
+              "text": "Add Term",
+              "emoji": true
+            },
+            "value": "Add_Button",
+            "action_id": "add"
+          },
+          {
+            "type": "button",
+            "text": {
+              "type": "plain_text",
+              "text": "Search Term",
+              "emoji": true
+            },
+            "value": "Search_Button",
+            "action_id": "search"
+          },
+          {
+            "type": "button",
+            "text": {
+              "type": "plain_text",
+              "text": "Edit Term",
+              "emoji": true
+            },
+            "value": "Edit_Button",
+            "action_id": "edit"
+          },
+          {
+            "type": "button",
+            "text": {
+              "type": "plain_text",
+              "text": "Delete Term",
+              "emoji": true
+            },
+            "value": "Delete_Button",
+            "action_id": "delete",
+            "style": "danger"
+          }
+        ]
       },
       {
         "type": "divider"
@@ -151,7 +209,7 @@ module.exports = {
         "type": "section",
         "text": {
           "type": "mrkdwn",
-          "text": "• Need to know what a term means? Send me a message in the form of *\"@Cappy what does __ mean\"*, and if I know it I'll reply to your message with the definition!\n\n• Want to tell me something and help me learn! Then you can send me a message in the form of *\"@Cappy add ILC : I love Cappy!\"*, and I'll make sure to remember that for the next time somebody asks.\n\n• Want a simple help message without leaving the channel you're currently in? Then you can just message me with *\"@Cappy help\"* and I'll send you a short version of this message!\n\n• Want to add a tag to a term? Send me a message in the form of *\"@Cappy tag ___ with ___\", and I'll tag that term with the term you give me. Make sure the new tag doesn't have any spaces in it though!"
+          "text": "• Need to know what a term means? Use the slash command */query* to look up anything in my knowledge base!\n• Want to tell me a term I should know? Use the slash command */add* to add a term to the database.\n• Is something I know not right? Use the slash command */edit* to change a definition in my knowledge base.\n• Is there someting I know that I don't need to anymore? Use the slash command */delete* to delete a term from my knowledge base.\n"
         }
       },
       {
@@ -171,7 +229,6 @@ module.exports = {
       }
     ]
   },
-  
   //Clay
   editModal: {
     "type": "modal",
