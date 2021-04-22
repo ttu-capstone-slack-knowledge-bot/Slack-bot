@@ -646,6 +646,7 @@ async function handleSlashCommand(data)
       }
     break;// out of terms
 
+    //Clay
     case "/edit":    
       if (data.text == ("" || '')){
         await postModal(data, modalData.editModal);
@@ -720,6 +721,7 @@ async function handleSlashCommand(data)
       } 
     break; //out of edit
 
+    //Clay
     case "/viewtags":   
     if (data.text == ("" || '')){
       await postModal(data, modalData.viewTagModal);

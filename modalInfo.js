@@ -239,6 +239,7 @@ module.exports = {
     "callback_id": "edit-term"
   }, //end of editModal
 
+  //Clay
   viewTagModal:  {
     "type": "modal",
     "submit": {
