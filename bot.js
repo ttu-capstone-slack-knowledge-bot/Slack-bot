@@ -57,7 +57,6 @@ async function handleInteractionEvent(data)
   switch (interaction)
   {
     case "block_actions": // general interaction. Most likely it's a button press
-<<<<<<< HEAD
 
       // Log the payload so I can see it
       console.log("Button has been pressed");
@@ -92,9 +91,6 @@ async function handleInteractionEvent(data)
       }
 
       // await postModal(data, modalData.firstModal);
-=======
-      await postModal(trigger, modalData.firstModal);
->>>>>>> main
     break;
 
     case "view_submission": // submit button on a modal was pressed
