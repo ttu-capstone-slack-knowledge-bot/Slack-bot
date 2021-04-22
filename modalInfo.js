@@ -457,6 +457,7 @@ module.exports = {
       }
     ],
     "callback_id": "addTag"
+  },
   termsModal: {
     "title": {
       "type": "plain_text",
@@ -465,4 +466,12 @@ module.exports = {
     "blocks": [],
     "type": "modal"
   }
+  },
+  queryModal: {"title": {
+    "type": "plain_text",
+    "text": "Search"
+  },
+  "blocks": [],
+  "type": "modal"
+}
 }
