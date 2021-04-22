@@ -72,25 +72,30 @@ async function handleInteractionEvent(data)
         switch (buttonType)
         {
           case "add":
-           
+            console.log("Posting add term modal");
+            await postModal(trigger, modalData.addTerm);
           break;
 
           case "query":
-
+            console.log("Posting query term modal");
+            await postModal(trigger, modalData.queryModal);
           break;
 
           case "edit":
-
+            console.log("Posting edit term modal");
+            await postModal(trigger, modalData.editModal);
           break;
 
           case "delete":
-
+            console.log("Posting delete term modal");
+            await postModal(trigger, modalData.deleteTermModal);
           break;
         }
-
       }
-
-      // await postModal(data, modalData.firstModal);
+      else  // Some random action happened. Not sure what it would be, but just in case.
+      {
+        await postModal(trigger, modalData.firstModal);
+      }
     break;
 
     case "view_submission": // submit button on a modal was pressed
