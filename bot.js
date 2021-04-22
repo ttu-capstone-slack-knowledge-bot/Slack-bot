@@ -28,7 +28,7 @@ module.exports.run = async (data) => {
   // Based on what we decided the method is, pass it off to it's proper handler.
   if (method === "interaction")
   { 
-    response = await handleInterationEvent(dataObject);
+    response = await handleInteractionEvent(dataObject);
   }
   else if (method === "slash")
   {
@@ -42,7 +42,7 @@ module.exports.run = async (data) => {
   return response;
 };
 
-async function handleInterationEvent(data)
+async function handleInteractionEvent(data)
 {
   // This is what will tell Slack everything went good. Change/add any fields as needed to reflect the status.
   let giveBack = {
@@ -50,37 +50,31 @@ async function handleInterationEvent(data)
     body: ""
   }
 
+  // The user that caused this function to be called. Used for sending back DM's to them.
+  const user = data.user.id;
+
+  // Used for deciding what exactly was the event that triggered this function.
   const interaction = data.type;
 
   switch (interaction)
   {
-    case "block_actions":
+    case "block_actions": // general interaction. Most likely it's a button press
       await postModal(data, modalData.firstModal);
     break;
 
-    case "view_submission":
+    case "view_submission": // submit button on a modal was pressed
 
       if (data.view.callback_id == "getName")
       {
+        // This is part of the /testing command. Doesn't need to stick around much longer.
         let nameInput = data.view.state.values.nameInput.nameEntered.value;
         console.log(nameInput);
         console.log("Did that work?");
 
         let message = "Thanks " + nameInput + ", nice to meet you!";
 
-        let params = {
-          channel: data.user.id,
-          text: message
-        };
-  
-        try {
-          let val = await Bot.chat.postMessage(params);
-          console.log(val);
-        }
-        catch (error)
-        {
-          console.error("Error in 1: ", error)
-        }
+        await sendMessageToDM(message, user);
+        
       }
       else if (data.view.callback_id == "addTag") {
         
@@ -120,19 +114,7 @@ async function handleInterationEvent(data)
 
         // What if both a tag is typed and an option is chosen? Then nothing happens. Probably just need an else that picks one.
 
-        let params = {
-          channel: data.user.id,
-          text: message
-        };
-
-        try {
-          let val = await Bot.chat.postMessage(params);
-          console.log(val);
-        }
-        catch (error)
-        {
-          console.error("Error in 1: ", error)
-        }
+        await sendMessageToDM(message, user);
       }
       else if (data.view.callback_id == "deleteTerm")
       {
@@ -142,67 +124,28 @@ async function handleInterationEvent(data)
 
         message = await deleteTermFromDatabase(termToDelete);
         
-        let params = {
-          channel: data.user.id,
-          text: message
-        };
-  
-        try {
-          let val = await Bot.chat.postMessage(params);
-          console.log(val);
-        }
-        catch (error)
-        {
-          console.error("Error in deleteTerm: ", error)
-        }
+        await sendMessageToDM(message, user);
       }
       else if (data.view.callback_id == "deleteTermConfirmation")
       {
         let termToDelete = data.view.private_metadata;
         let message = await deleteTermFromDatabase(termToDelete);
 
-        let params = {
-          channel: data.user.id,
-          text: message
-        };
-  
-        try {
-          let val = await Bot.chat.postMessage(params);
-          console.log(val);
-        }
-        catch (error)
-        {
-          console.error("Error in deleteTermConfirmation")
-          console.error(error);
-        }
+        await sendMessageToDM(message, user);
       }
       else if (data.view.callback_id == "edit-term") //Clay
       {
-
         let editTermInput1 = data.view.state.values.editTermInput1.editTermEntered1.value;
         let termExists = await queryDB(editTermInput1); //returns "result"
+        
         if (termExists == null) {
           let message = "Sorry, the term you entered does not exist. I can't edit what is not there. Try /add to create the term.";
 
-
-          let params = {
-            channel: data.user.id,
-            text: message
-          };
-        
-          try {
-            let val = await Bot.chat.postMessage(params);
-            
-            console.log(val);
-          }
-          catch (error) {
-            console.error("Error posting message " + error);
-          }
+          await sendMessageToDM(message, user);
           return giveBack;
         }
         //let define = await getDesc(editTermInput1); // check the db if the term is there        
-        let dbTermName = termExists.Item.RegName; //Pull out just the term name from the 
-        let message;      
+        let dbTermName = termExists.Item.RegName; //Pull out just the term name from the      
         
         //if the two terms match, then continue
         if (editTermInput1 == dbTermName){
@@ -214,37 +157,8 @@ async function handleInterationEvent(data)
 
           let updateComplete = await updateDesc(editTermInput1,desc);
           
-          let params = {
-            channel: data.user.id,
-            text: updateComplete
-          };
-        
-          try {
-              let val = await Bot.chat.postMessage(params);
-              console.log(val);
-          }
-          catch (error) {
-            console.error("Error posting message " + error);
-          }
+          await sendMessageToDM(updateComplete, user);
         }
-        //else if the term isn't in the DB, notify the user.
-        else if (termExists == null) {
-          message = "Sorry, the term you entered does not exist. I can't edit what is not there. Try /add to create the term.";
-
-          let params = {
-            channel: data.user.id,
-            text: message
-          };
-        
-          try {
-            let val = await Bot.chat.postMessage(params);
-            console.log(val);
-          }
-          catch (error) {
-            console.error("Error posting message " + error);
-          }
-        }
-
       } 
       else if (data.view.callback_id == "addTerm")
       {
@@ -260,38 +174,14 @@ async function handleInterationEvent(data)
           let message = "The term " + nameInput + " has been added to the database";
           console.log(data);
 
-          let params = {
-            channel: data.user.id,
-            text: message
-          };
-    
-          try {
-            let val = await Bot.chat.postMessage(params);
-            console.log(val);
-          }
-          catch (error)
-          {
-            console.error("Error in 1: ", error);
-          }
+          await sendMessageToDM(message, user);
         }
         else //the term already exists, tell the user without adding it
         {
           //out to slack that the term already exists
           let message = "The term " + nameInput + " already exists in the database";
 
-          let params = {
-            channel: data.user.id,
-            text: message
-          };
-    
-          try {
-            let val = await Bot.chat.postMessage(params);
-            console.log(val);
-          }
-          catch (error)
-          {
-            console.error("Error in 2: ", error);
-          }
+         await sendMessageToDM(message, user);
         }
       } 
 
@@ -309,6 +199,9 @@ async function handleSlashCommand(data)
     statusCode: 200,
     body: ""
   }
+
+  // User that used the slash command. Used for sending DM's back to them.
+  const user = data.user_id;
 
   // Get the command from the payload so we can decide what to do with it.
   const command = data.command;
@@ -410,61 +303,23 @@ async function handleSlashCommand(data)
             //output confirmation in slack
             let message = "The term " + nameInput + " has been added to the database";
 
-            let params = {
-              channel: data.user_id,
-              text: message
-            };
-      
-            try {
-              let val = await Bot.chat.postMessage(params);
-              console.log(val);
-            }
-            catch (error)
-            {
-              console.error("Error in 1: ", error);
-            }
+            await sendMessageToDM(message, user);
           }
           else //term is in database
           {
             //output to slack that term already exists
             let message = "The term " + nameInput + " already exists in the database";
 
-            let params = {
-              channel: data.user_id,
-              text: message
-            };
-      
-            try {
-              let val = await Bot.chat.postMessage(params);
-              console.log(val);
-            }
-            catch (error)
-            {
-              console.error("Error in 2: ", error);
-            }
+            await sendMessageToDM(message, user);
           }// end of checkifExists if/else
         } 
         else //the text input after the slash command doesn't match the format "/add term: desc", tell the user
         {
-          
           //output to slack that the command formatting was incorrect
           let message = "Please use \"/add\" OR \"/add [term]: [definition]\"";
 
-          let params = {
-            channel: data.user_id,
-            text: message
-          };
-    
-          try {
-            let val = await Bot.chat.postMessage(params);
-            console.log(val);
-          }
-          catch (error)
-          {
-            console.error("Error in 1: ", error);
-          }
+          await sendMessageToDM(message, user);
         }//end of text matching if/else
-        break;
       } 
       else //User didn't enter text, post the add term modal
       {
@@ -531,20 +386,9 @@ async function handleSlashCommand(data)
           //output to slack that the command formatting was incorrect
           let message = "Please use \"/terms\" or \"/terms [letter]\"";
 
-          let params = {
-            channel: data.user_id,
-            text: message
-          };
-    
-          try {
-            let val = await Bot.chat.postMessage(params);
-            console.log(val);
-          }
-          catch (error)
-          {
-            console.error("Error in 1: ", error);
-          }
-        } else { //user's text input was a single letter
+          await sendMessageToDM(message, user);
+        } 
+        else { //user's text input was a single letter
           let dictionary = await readFromDB2(); //get all the terms from the database
           let termsModal = JSON.parse(JSON.stringify(modalData.termsModal)); //get the outline of the terms modal from modalInfo.js and make a useable copy of it
           let firstletter = data.text.toUpperCase(); //to make the letter header in the modal
@@ -622,56 +466,21 @@ async function handleSlashCommand(data)
         {
           response = "Sorry, the term you entered does not exist. I can't edit what is not there. Try /add to create the term.";
 
-          let params = {
-            channel: data.user_id,
-            text: response
-          };
-
-          try {
-            let val = await Bot.chat.postMessage(params);
-            console.log(val);
-          }
-          catch (error)
-          {
-            console.error("Error in 1: ", error);
-          }
+          await sendMessageToDM(response, user);
         }
         else if (termExists == -1) // There was some sort of database error
         {
           response = "Sorry, there was an error trying to retrieve the term.";
 
-          let params = {
-            channel: data.user_id,
-            text: response
-          };
-
-          try {
-            let val = await Bot.chat.postMessage(params);
-            console.log(val);
-          }
-          catch (error)
-          {
-            console.error("Error in 1: ", error);
-          }
+          await sendMessageToDM(response, user);
         }
         else // Term exists, so apply the new description.
         {
           //console.log("Tag exists: Entering applyTagToTerm");
           response = await updateDesc(wordToEdit, descToApply); //returns "___ is now ____" if the wordToEdit is found.
           console.log("Testing: Sucessfully updated term using shortcut.");
-          let params = {
-            channel: data.user_id,
-            text: response
-          };
-
-          try {
-            let val = await Bot.chat.postMessage(params);
-            console.log(val);
-          }
-          catch (error)
-          {
-            console.error("Error in 1: ", error);
-          }
+          
+          await sendMessageToDM(response, user);
         }
       } 
     break; //out of edit
@@ -921,7 +730,7 @@ async function handleEvent(data)
           response = wordToFind + " means " + desc;
         }
 
-        await sendMessageToSlack(response, data, 1);
+        await sendMessageToSlackChannel(response, data, 1);
       }
       else if (data.event.text.search(tagTermRE) != -1) // Tag __ with ___
       {
@@ -949,7 +758,7 @@ async function handleEvent(data)
         }
 
         // Give the response back to the user in a thread.
-        await sendMessageToSlack(response, data, 1);
+        await sendMessageToSlackChannel(response, data, 1);
         
         
       }
@@ -960,28 +769,28 @@ async function handleEvent(data)
         let response = "";
 
         response = await findTermsWithTag(tagToFind);
-        await sendMessageToSlack(response, data, 1);
+        await sendMessageToSlackChannel(response, data, 1);
       }
       else if (data.event.text.includes(" hello") || data.event.text.includes(" hi"))
       {
         const text = "Sup, human.";
-        await sendMessageToSlack(text, data, 0);
+        await sendMessageToSlackChannel(text, data, 0);
       }
       else if (data.event.text.includes("how are you"))
       {
-        await sendMessageToSlack("You know, just livin' one day at a time.", data, 0);
+        await sendMessageToSlackChannel("You know, just livin' one day at a time.", data, 0);
       }
       else if (data.event.text.includes("color is the sky"))
       {
-        await sendMessageToSlack("Probably blue, but I dont have eyes, so who knows", data, 0);
+        await sendMessageToSlackChannel("Probably blue, but I dont have eyes, so who knows", data, 0);
       }
       else if (data.event.text.includes("meaning of life"))
       {
-        await sendMessageToSlack("42. It's always 42", data, 0);
+        await sendMessageToSlackChannel("42. It's always 42", data, 0);
       }
       else if (data.event.text.includes("favorite color"))
       {
-        await sendMessageToSlack("Purple", data, 0);
+        await sendMessageToSlackChannel("Purple", data, 0);
       }
       else if (data.event.text.includes(" add"))
       {
@@ -994,9 +803,9 @@ async function handleEvent(data)
           let newTerm = fullString.slice(0, splitIndex - 1);
           let newDef = fullString.slice(splitIndex+2, data.event.text.length);
 
-          await sendMessageToSlack("Adding item to the database...", data, 1);
+          await sendMessageToSlackChannel("Adding item to the database...", data, 1);
           await sendToDB(newTerm, newDef);
-          await sendMessageToSlack("The item has been added", data, 1);
+          await sendMessageToSlackChannel("The item has been added", data, 1);
   
         }
         catch (error)
@@ -1006,9 +815,9 @@ async function handleEvent(data)
       }
       else if (data.event.text.includes(" give")) 
       {
-        await sendMessageToSlack("Here's what is in the database: ", data, 0);
+        await sendMessageToSlackChannel("Here's what is in the database: ", data, 0);
         let message = await readFromDB();
-        await sendMessageToSlack(message, data, 0);
+        await sendMessageToSlackChannel(message, data, 0);
       }
       else if (data.event.text.includes(" help") || data.event.text.includes(" how do you work")) // Potential base for the help command to be based off of?
       {
@@ -1018,7 +827,7 @@ async function handleEvent(data)
           "Ask me to \"give me the whole database\" and I'll tell you everything I know!\n" +
           "Tell me \"learn xxx\" and then I'll ask you what it means. Once you tell me, I'll never forget it!\n" +
           "For a more detailed list of all I can do, check out my Home Page by clicking on my user icon!";
-        await sendMessageToSlack(help, data, 0);
+        await sendMessageToSlackChannel(help, data, 0);
       }
       else if (data.event.text.includes("show me the tags"))
       {
@@ -1033,11 +842,11 @@ async function handleEvent(data)
             message += tag;
         });
 
-        await sendMessageToSlack(message, data, 1);
+        await sendMessageToSlackChannel(message, data, 1);
       }
       else 
       {
-        await sendMessageToSlack("Sorry, I don't know how to handle that request yet.", data, 0);
+        await sendMessageToSlackChannel("Sorry, I don't know how to handle that request yet.", data, 0);
       };
 
     break;
@@ -1114,6 +923,12 @@ async function getTagsForTerm(term)
 
   // Get everything about the term. 
   termData = await queryDB(term);
+
+  if (termData == null)
+  {
+    // Term doesn't exist
+    return -1;
+  }
   
   // Check to see if it has any tags
   if (termData.Item.hasOwnProperty("LowerTags")) // Already has tags
@@ -1169,14 +984,6 @@ async function updateDesc(term, newDesc)
    sendback = name + " changed to " + desc;
    return sendback;
 }
-/*
-  }
-  catch (error)
-  {
-    console.error(error);
-    response = "Sorry, there was an error updating the database.";
-  }
-*/
 
 // Applys a list of tags to a given term
 // Ben
@@ -1190,7 +997,13 @@ async function applyTagToTerm(term, newTag)
   let result;
 
   // Check to see if the term's database entry has the tag attribute yet, since it isn't required when putting something in the database.
-  if (tagObject === null) // Term doesn't the tag attribute yet
+  if (tagObject == -1)  // Term doesn't exist
+  {
+    console.log("Term to tag doesn't exist");
+    response = "Sorry, that term doesn't exist yet. You can add it using /add if you want me to know it!";
+    return response;
+  }
+  else if (tagObject === null) // Term doesn't the tag attribute yet
   {
     regTags = [newTag];
     lowerTags = [newTag.toLowerCase()];
@@ -1505,12 +1318,9 @@ async function deleteTermFromDatabase(term)
   return message;
 }
 
-// Function for sending messages to slack as the bot. This cleans up the previoius way by elimating the repative code.
-//  Will probably need to be changed a couple times as we figure stuff out. But I figured it was worth making
-// ACCEPTS: text - the message that the bot will say
-//          data - the data sent to lambda to describe the event
-//          method - The kind of message the bot will be sending (0 = regular message, 1 = message reply, 2 = DM)
-async function sendMessageToSlack(message, data, method)
+// Function for sending a message to a slack channel. 
+// ONLY TO BE CALLED WITHIN HandleEvent(). Won't work in other functions due to data payload being different
+async function sendMessageToSlackChannel(message, data, method)
 {
   let params = {};
   switch (method)
@@ -1534,14 +1344,13 @@ async function sendMessageToSlack(message, data, method)
     break;
 
     case 1:   // Reply to the message itself, starting a thread
-
-    // This checks to see if the message is a parent message, or a thread reply itself.
-    let timeStamp;
-    if (data.event.hasOwnProperty('thread_ts')) {
-      timeStamp = data.event.thread_ts;
-    } else {
-      timeStamp = data.event.ts;
-    }
+      // This checks to see if the message is a parent message, or a thread reply itself.
+      let timeStamp;
+      if (data.event.hasOwnProperty('thread_ts')) {
+        timeStamp = data.event.thread_ts;
+      } else {
+        timeStamp = data.event.ts;
+      }
 
       params = {
         channel: data.event.channel,
@@ -1559,29 +1368,31 @@ async function sendMessageToSlack(message, data, method)
       }
 
     break;
-
-    case 2:   // Send a DM to the invoking user
-
-    params = {
-      channel: data.event.user,
-      text: message
-    };
-
-    try {
-      let val = await Bot.chat.postMessage(params);
-      console.log(val);
-    }
-    catch (error)
-    {
-      console.error("Error in 1: ", error)
-    }
-
-    break;
   }
-
-  
 }
 
+// Function for sending a DM to the user passed to the function
+// Can be called in any function since only the message and user's id is being passed
+async function sendMessageToDM(message, user)
+{
+  // Send a DM to the invoking user
+  let params = {
+    channel: user,
+    text: message
+  };
+
+  try {
+    let val = await Bot.chat.postMessage(params);
+    console.log(val);
+  }
+  catch (error)
+  {
+    console.error("Error trying to send a DM to the user.");
+    console.error(error);
+  }
+}
+
+// Function for posting a modal to a user's view. Mostly made to keep from copying and pasting the same code all over the place.
 async function postModal(data, viewData)
 {
   let modal = {
@@ -1786,7 +1597,7 @@ async function addTagToListOfTags(newTag)
 
   try 
   {
-    result = await db.update(params).promise();
+    let result = await db.update(params).promise();
     console.log("Tag List has been updated: \n" + result);
   }
   catch (error)
