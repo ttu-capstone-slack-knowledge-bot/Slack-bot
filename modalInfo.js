@@ -369,5 +369,12 @@ module.exports = {
     },
     "blocks": [],
     "type": "modal"
-  }
+  },
+  queryModal: {"title": {
+    "type": "plain_text",
+    "text": "Search"
+  },
+  "blocks": [],
+  "type": "modal"
+}
 }

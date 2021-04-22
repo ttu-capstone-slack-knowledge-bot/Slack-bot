@@ -598,7 +598,131 @@ async function handleSlashCommand(data)
         }
       } 
     break; //out of edit
-  } // end of switch 
+  
+    case "/query":
+      if (data.text == ("" || ''))
+      {
+        //await postModal(data, modalData.queryModal);
+      } 
+      else if (data.text != null) {
+        let searchRE = /(?<term>[\w]{1,})/i;
+          if (data.text.search(searchRE) != -1) {
+          let response = "";
+          console.log ("Shortcut command used (search)");
+
+          const matchArray = data.text.match(searchRE);
+          let searchTerm = matchArray.groups.term;
+
+          console.log ("Attempting to get desc...");
+          let termExists = await getDesc(searchTerm);
+
+          console.log("Desc is: " + termExists);
+        
+          if (termExists == null) // Term doesn't exist
+        {
+          searchTerm = searchTerm.toUpperCase();
+            let queryModal = JSON.parse(JSON.stringify(modalData.queryModal));
+            queryModal.blocks.push(
+              {
+                "type": "section",
+                "text": {
+                  "type": "plain_text",
+                  "text": ":mag: Searching for term: " + searchTerm,
+                  "emoji": true
+                }
+              },
+              {
+                "type": "divider"
+              },
+              {
+                "type": "section",
+                "text": {
+                  "type": "plain_text",
+                  "text":  "Sorry, term not found. Try to /add it!",
+                  "emoji": true
+                }
+              }
+            );
+
+            await postModal(data, queryModal);
+
+          try {
+           
+            console.log(val);
+          }
+          catch (error)
+          {
+            console.error("Error in 1: ", error);
+          }
+          } 
+         else if (termExists == -1) // There was some sort of database error
+        {
+          response = "Sorry, there was an error trying to retrieve the term.";
+
+          let params = {
+            channel: data.user_id,
+            text: response
+          };
+
+          try {
+            let val = await Bot.chat.postMessage(params);
+            console.log(val);
+          }
+          catch (error)
+          {
+            console.error("Error in 1: ", error);
+          }
+          }
+         else // Term exists, so apply the new description.
+          {
+        
+          console.log("Testing: Sucessfully found term using shortcut.");
+          console.log(termExists);
+
+          response = termExists;
+          let params = {
+            channel: data.user_id,
+            text: response
+          };
+
+          try {
+            searchTerm = searchTerm.toUpperCase();
+            let queryModal = JSON.parse(JSON.stringify(modalData.queryModal));
+            queryModal.blocks.push(
+              {
+                "type": "section",
+                "text": {
+                  "type": "plain_text",
+                  "text": ":mag: Searching for term: " + searchTerm,
+                  "emoji": true
+                }
+              },
+              {
+                "type": "divider"
+              },
+              {
+                "type": "section",
+                "text": {
+                  "type": "plain_text",
+                  "text":  searchTerm + ": " + termExists,
+                  "emoji": true
+                }
+              }
+            );
+
+            await postModal(data, queryModal);
+
+            console.log(val);
+          } 
+          catch (error)
+          {
+            console.error("Error in 1: ", error);
+          }
+          }
+        } 
+      } 
+    break;
+  } 
 
   return giveBack;
 } // end of slash function
