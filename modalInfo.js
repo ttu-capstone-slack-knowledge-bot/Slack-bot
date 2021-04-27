@@ -523,11 +523,84 @@ module.exports = {
     "blocks": [],
     "type": "modal"
   },
-  queryModal: {"title": {
+  queryModal: {
+    "title": {
     "type": "plain_text",
     "text": "Search"
   },
   "blocks": [],
   "type": "modal"
-}
+  },
+  searchByTagModal: {
+    "type": "modal",
+    "title": {
+      "type": "plain_text",
+      "text": "Search by tags",
+      "emoji": true
+    },
+    "submit": {
+      "type": "plain_text",
+      "text": "Submit",
+      "emoji": true
+    },
+    "close": {
+      "type": "plain_text",
+      "text": "Cancel",
+      "emoji": true
+    },
+    "blocks": [
+      {
+        "type": "section",
+        "text": {
+          "type": "plain_text",
+          "text": "Choose a tag, or enter one that you would like to see all terms that are tagged with it!",
+          "emoji": true
+        }
+      },
+      {
+        "type": "input",
+        "element": {
+          "type": "plain_text_input",
+          "action_id": "tag"
+        },
+        "optional": true,
+        "block_id": "tagInput",
+        "label": {
+          "type": "plain_text",
+          "text": "Enter a tag to search",
+          "emoji": true
+        }
+      },
+      {
+        "type": "input",
+        "optional": true,
+        "block_id": "tagSelect",
+        "element": {
+          "type": "static_select",
+          "placeholder": {
+            "type": "plain_text",
+            "text": "Select an item",
+            "emoji": true
+          },
+          "options": [
+            {
+              "text": {
+                "type": "plain_text",
+                "text": "*this is plain_text text*",
+                "emoji": true
+              },
+              "value": "value-0"
+            }
+          ],
+          "action_id": "tagMenu"
+        },
+        "label": {
+          "type": "plain_text",
+          "text": "Or Select one from this list",
+          "emoji": true
+        }
+      }
+    ],
+    "callback_id": "searchTags"
+  }
 }

@@ -219,7 +219,49 @@ async function handleInteractionEvent(data)
 
          await sendMessageToDM(message, user);
         }
-      } 
+      }
+      else if (data.view.callback_id == "searchTags")
+      {
+        // Tag that was typed
+        let typedTag = data.view.state.values.tagInput.tag.value;
+
+        // Need these for later
+        let message; 
+        let tag; 
+
+        // Gotta play with this one some, since it's not as straight forward
+        let selectedTag;
+        
+        if (data.view.state.values.tagSelect.tagMenu.selected_option == null) // No option was chosen, so it doesn't even get .text.text
+        {
+          selectedTag = null;
+        }
+        else  // An option was chosen, so now we can get the .text.text to get the actual option
+        {
+          selectedTag = data.view.state.values.tagSelect.tagMenu.selected_option.text.text;
+        }
+
+        // Check all the inputs, decide which one to go with.
+        if (typedTag == null && selectedTag == null)
+        {
+          tag = null;
+          message = "No tag was provided to search for."
+        }
+        if (typedTag == null)
+        {
+          tag = selectedTag;
+        }
+        else if (selectedTag == null)
+        {
+          tag = typedTag;
+        }
+        else  // Both inputs used, so just go with the typed one
+          tag = typedTag;
+
+        // Now use the tag
+        message = await findTermsWithTag(tag);
+        await sendMessageToDM(message, user);
+      }
 
     break; // Break view_submission block
   } //end of switch block
@@ -632,6 +674,48 @@ async function handleSlashCommand(data)
         } 
       } 
     break;
+  
+    case "/tagsearch":
+
+      if (data.text != "")
+      {
+        console.log("Using shortcut command.");
+        let tag = data.text;
+
+        let message = await findTermsWithTag(tag);
+        await sendMessageToDM(message, user);
+      }
+      else
+      {
+        console.log("Posting tag search modal.");
+
+        // set up variables
+        let newOptionsArray = []; 
+        let newOption;
+       
+        // get the modal from the file
+        let newModal = JSON.parse(JSON.stringify(modalData.searchByTagModal));
+
+        // Get the list of tags
+        let tags = await getListOfTags();
+
+        // create the new options array to put within the modal
+        for (let i = 0; i < tags.regular.length; i++) {
+          newOption = { 
+            text: {
+              type: "plain_text",
+              text: tags.regular[i]
+            },
+            value: "Choice " + i
+          };
+          newOptionsArray.push(newOption);
+        }
+
+        newModal.blocks[2].element.options = newOptionsArray;
+
+        await postModal(trigger, newModal);
+      }
+    break;
   } 
 
   return giveBack;
@@ -922,7 +1006,7 @@ async function findTermsWithTag(tag)
 
       // Generate the string of terms
       result.Items.forEach((item) => {
-        response += "  - " + item.RegName + "\n";
+        response += "  - " + item.RegName + ": " + item.Desc +"\n";
       });
     } 
   }
@@ -1564,8 +1648,8 @@ async function getListOfTags()
 
   // Cool, we have the item. So now we just extract the arrays and return them
   let arrayHolder = {
-    lower: result.Item.LowerTags,
-    regular: result.Item.RegTags
+    lower: result.Item.LowerTags.sort(),
+    regular: result.Item.RegTags.sort()
   };
   console.log("Got the arrays");
   console.log(arrayHolder);
