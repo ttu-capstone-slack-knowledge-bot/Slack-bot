@@ -213,17 +213,49 @@ module.exports = {
         }
       },
       {
+        "type": "divider"
+      },
+      {
+        "type": "header",
+        "text": {
+          "type": "plain_text",
+          "text": "Additional Actions",
+          "emoji": true
+        }
+      },
+      {
         "type": "actions",
+        "block_id": "Extra_Buttons",
         "elements": [
           {
             "type": "button",
             "text": {
               "type": "plain_text",
-              "text": "Click Me",
+              "text": "Add Tag to Term",
               "emoji": true
             },
-            "value": "click_me_123",
-            "action_id": "Open-Edit"
+            "value": "AddTag_Button",
+            "action_id": "addTag"
+          },
+          {
+            "type": "button",
+            "text": {
+              "type": "plain_text",
+              "text": "Search by Tag",
+              "emoji": true
+            },
+            "value": "SearchByTag_Button",
+            "action_id": "tagSearch"
+          },
+          {
+            "type": "button",
+            "text": {
+              "type": "plain_text",
+              "text": "See Dictionary",
+              "emoji": true
+            },
+            "value": "Dictionary_Button",
+            "action_id": "dictionary"
           }
         ]
       }
