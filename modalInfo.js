@@ -465,7 +465,6 @@ module.exports = {
     },
     "blocks": [],
     "type": "modal"
-  }
   },
   queryModal: {"title": {
     "type": "plain_text",
@@ -473,5 +472,70 @@ module.exports = {
   },
   "blocks": [],
   "type": "modal"
-}
+  },
+  searchByTag: {
+	"type": "modal",
+	"submit": {
+		"type": "plain_text",
+		"text": "Submit",
+		"emoji": true
+	},
+	"close": {
+		"type": "plain_text",
+		"text": "Cancel",
+		"emoji": true
+	},
+	"title": {
+		"type": "plain_text",
+		"text": "Search for Terms",
+		"emoji": true
+	},
+	"blocks": [
+		{
+			"type": "input",
+			"block_id": "searchByTag",
+			"element": {
+				"type": "static_select",
+				"placeholder": {
+					"type": "plain_text",
+					"text": "Select an item",
+					"emoji": true
+				},
+				"options": [
+					{
+						"text": {
+							"type": "plain_text",
+							"text": "Option 1",
+							"emoji": true
+						},
+						"value": "value-0"
+					},
+					{
+						"text": {
+							"type": "plain_text",
+							"text": "Option 2",
+							"emoji": true
+						},
+						"value": "value-1"
+					},
+					{
+						"text": {
+							"type": "plain_text",
+							"text": "Option 3",
+							"emoji": true
+						},
+						"value": "value-2"
+					}
+				],
+				"action_id": "searchByTag"
+			},
+			"label": {
+				"type": "plain_text",
+				"text": "Choose A Tag To Search By:",
+				"emoji": true
+			}
+		}
+	],
+	"callback_id": "searchByTag"
+  }
 }
