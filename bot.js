@@ -106,7 +106,9 @@ async function handleInterationEvent(data)
         */
           console.log("entered the termExists if block");
           returnedTags = getTagsForTerm(input);
-          let message = "Term match. Here are the tags:" + returnedTags.RegTags;
+          let myTags = await returnedTags.lower;
+          
+          let message = "Tags associated with " + input + ": " + (await returnedTags).lower;
 
           let params = {
             channel: data.user.id,
@@ -774,12 +776,12 @@ async function handleSlashCommand(data)
         }
         else // Term exists, so post the tags associated with the given term.
         {
-          //console.log("Tag exists: Entering applyTagToTerm");
           response = await getTagsForTerm(wordToGetTagsFrom);
+          let newResponse = response.lower;
           console.log("Testing: Sucessfully posted term's tags using shortcut.");
           let params = {
             channel: data.user_id,
-            text: response
+            text: newResponse
           };
 
           try {
