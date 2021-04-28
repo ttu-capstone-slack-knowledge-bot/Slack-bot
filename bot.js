@@ -175,6 +175,16 @@ async function handleInteractionEvent(data)
 
         await sendMessageToDM(message, user);
       }
+
+      else if (data.view.callback_id == "searchByTag") {
+        let message; 
+        let selectedTag = data.view.state.values.searchByTag.searchByTag.selected_option.text.text;
+
+        message = await findTermsWithTag(selectedTag);
+
+        await sendMessageToDM(message, user);
+      } 
+
       else if (data.view.callback_id == "deleteTerm")
       {
         let message = "";
@@ -654,6 +664,30 @@ async function handleSlashCommand(data)
         } 
       } 
     break;
+
+    case "/searchbytag":
+      let tag = await getListOfTags(); 
+      let newOptionArray = []; 
+      let option;
+
+      for (let i = 0; i < tag.regular.length; i++) {
+          option = { 
+            text: {
+              type: "plain_text",
+              text: tag.regular[i]
+            },
+            value: "Choice " + i
+          };
+        newOptionArray.push(option);
+      }
+
+      let modal = JSON.parse(JSON.stringify(modalData.searchByTag));
+
+      modal.blocks[0].element.options=newOptionArray;
+
+      await postModal(trigger, modal);
+
+      break;
   } 
 
   return giveBack;
