@@ -375,7 +375,7 @@ module.exports = {
     "type": "modal",
     "callback_id": "addTerm"
   },
- deleteTermModal: {
+  deleteTermModal: {
     "title": {
       "type": "plain_text",
       "text": "Delete a Term",
@@ -556,12 +556,50 @@ module.exports = {
     "type": "modal"
   },
   queryModal: {
+    "type": "modal",
     "title": {
-    "type": "plain_text",
-    "text": "Search"
+      "type": "plain_text",
+      "text": "Term look up",
+      "emoji": true
     },
-    "blocks": [],
-    "type": "modal"
+    "submit": {
+      "type": "plain_text",
+      "text": "Submit",
+      "emoji": true
+    },
+    "close": {
+      "type": "plain_text",
+      "text": "Cancel",
+      "emoji": true
+    },
+    "blocks": [
+      {
+        "type": "section",
+        "text": {
+          "type": "plain_text",
+          "text": "Need to know what a term means? Enter the term here and I'll send you a message with it's definition.",
+          "emoji": true
+        }
+      },
+      {
+        "type": "input",
+        "block_id": "termInput",
+        "element": {
+          "type": "plain_text_input",
+          "action_id": "term",
+          "placeholder": {
+            "type": "plain_text",
+            "text": "Ex: SAIC"
+          }
+        },
+        "label": {
+          "type": "plain_text",
+          "text": "Enter a term",
+          "emoji": true
+        }
+      }
+    ],
+    "callback_id": "queryTerm"
   },
   searchByTag: {
     "type": "modal",

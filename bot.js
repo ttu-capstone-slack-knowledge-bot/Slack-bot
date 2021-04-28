@@ -6,6 +6,7 @@ const AWS = require('aws-sdk');
 const db = new AWS.DynamoDB.DocumentClient({region: "us-east-1"});
 const termTable = "AcronymData";
 const queryString = require('querystring');
+const { termsModal } = require('./modalInfo.js');
 const modalData = require('./modalInfo.js');
 
 module.exports.run = async (data) => {
@@ -122,6 +123,8 @@ async function handleInteractionEvent(data)
 
           case "dictionary":
             console.log("Posting dictionary modal");
+            newModal = await createDictionaryData(null);
+            await postModal(trigger, newModal);
 
           break;
         }
@@ -262,6 +265,22 @@ async function handleInteractionEvent(data)
          await sendMessageToDM(message, user);
         }
       }
+      else if (data.view.callback_id == "queryTerm")
+      {
+        let termInput = data.view.state.values.termInput.term.value;
+        let desc = await getDesc(termInput);
+        let message;
+
+        if (desc == -1)
+          message = "Sorry, there was an error looking up the term. Please try again later.";
+        else if (desc == null)
+          message = "Looks like I don't know that term yet! Try /add if you want to add it.";
+        else 
+          message = termInput + " stands for " + desc + ".";
+
+        await sendMessageToDM(message, user);
+
+      }
     break; // Break view_submission block
   } //end of switch block
 
@@ -281,8 +300,6 @@ async function handleSlashCommand(data)
   const user = data.user_id;  // User that used the slash command. Used for sending DM's back to them.
   const trigger = data.trigger_id;
   
- 
-
   switch (command)
   {
     case "/testing":    
@@ -336,7 +353,31 @@ async function handleSlashCommand(data)
 
     case "/addtag":
 
-      if (true)
+      if (data.text != "")
+      {
+        let addTagRE = /(?<term>[a-zA-Z0-9 ]{1,})(:) (?<tag>[_a-zA-Z 0-9-]{1,})/i;
+
+        if (data.text.search(addTagRE) != -1)
+        {
+          const matchArray = data.text.match(addTagRE); // will return an array with the groups from the regEx
+          let term = matchArray.groups.term;  // This will hold the term the user wishes to tag
+          let tag = matchArray.groups.tag;   // This will hold the tag the user wishes to apply
+
+          // Use it in the function, and get the message back from the function
+          let message = await applyTagToTerm(term, tag);
+
+          // Tell the user what happened
+          await sendMessageToDM(message, user);
+        }
+        else
+        {
+          // Give the user a error/missuse message
+          let message = "Whoops! Please use \"/addtag\" or \"/addtag [term]: [tag]\"";
+
+          await sendMessageToDM(message, user);
+        }
+      }
+      else
       {
         // Get the modal data
         let newModal = JSON.parse(JSON.stringify(modalData.addTag));
@@ -401,50 +442,10 @@ async function handleSlashCommand(data)
   
     case "/terms":
       //check if there's any text after the slash command
-      if(data.text == "") { //if there's no text after the "/terms"...
-        
-        let dictionary = await readFromDB2(); //get all the terms from the database
-        let termsModal = JSON.parse(JSON.stringify(modalData.termsModal)); //get the outline of the terms modal from modalInfo.js and make a useable copy of it
-        let firstletter = ""; //to make letter headers in the modal
-
-        dictionary.forEach(function(entry) { //for each term in the database
-          //if the firstletter var matches the first letter of the term, simply append the term to the modal's blocks
-          if (entry.charAt(0).toUpperCase() == firstletter) {
-            termsModal.blocks.push(
-              {
-                "type": "section",
-                "text": {
-                  "type": "plain_text",
-                  "text": entry,
-                  "emoji": true
-                }
-              }
-            );
-          } else { //the firstletter var doesn't match the first letter of the term
-            //change the firstletter var to match the first letter of the term
-            firstletter = entry.charAt(0).toUpperCase();
-            //append both a header block of the firstletter and a block for the term to the modal's blocks
-            termsModal.blocks.push(
-              {
-                "type": "header",
-                "text": {
-                  "type": "plain_text",
-                  "text": firstletter,
-                  "emoji": true
-                }
-              },
-              {
-                "type": "section",
-                "text": {
-                  "type": "plain_text",
-                  "text": entry,
-                  "emoji": true
-                }
-              }
-            );
-          }
-          
-        });
+      if(data.text == "") //if there's no text after the "/terms"...
+      { 
+        // Gets the updated modal with all the terms and descriptions
+        let termsModal = await createDictionaryData(null);
 
         // post the newly created terms modal
         await postModal(trigger, termsModal);
@@ -459,55 +460,8 @@ async function handleSlashCommand(data)
           await sendMessageToDM(message, user);
         } 
         else { //user's text input was a single letter
-          let dictionary = await readFromDB2(); //get all the terms from the database
-          let termsModal = JSON.parse(JSON.stringify(modalData.termsModal)); //get the outline of the terms modal from modalInfo.js and make a useable copy of it
-          let firstletter = data.text.toUpperCase(); //to make the letter header in the modal
-          let termsAdded = false; //to check if any terms were added to the modal
-
-          //append a header block for the firstletter to the modal's blocks
-          termsModal.blocks.push(
-            {
-              "type": "header",
-              "text": {
-                "type": "plain_text",
-                "text": firstletter,
-                "emoji": true
-              }
-            }
-          );
-
-          //for any term starting with firstletter in the database, append a block for it to the modal
-          dictionary.forEach(function(entry) {
-            if (entry.charAt(0).toUpperCase() == firstletter) { //check if firstletter matches the first letter of the term
-              termsAdded = true; //at least one term has been added
-              termsModal.blocks.push(
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "plain_text",
-                    "text": entry,
-                    "emoji": true
-                  }
-                }
-              );
-            } 
-          });
-
-          //if no terms were added (none start with the given letter), append a block to tell the user
-          if(termsAdded == false) { 
-            termsModal = JSON.parse(JSON.stringify(modalData.termsModal)); //reset to the outline of the terms modal (to clear the letter header)
-            //append a block stating that no terms start with the given letter
-            termsModal.blocks.push( 
-              {
-                "type": "section",
-                "text": {
-                  "type": "plain_text",
-                  "text": "There are currently no terms that start with the letter " + firstletter,
-                  "emoji": true
-                }
-              }
-            );
-          }
+          
+          let termsModal = await createDictionaryData(data.text);
 
           //post the newly created terms modal
           await postModal(trigger, termsModal);
@@ -556,13 +510,15 @@ async function handleSlashCommand(data)
     break; //out of edit
   
     case "/query":
-      if (data.text == ("" || ''))
+      if (data.text == (""))
       {
-        //await postModal(data, modalData.queryModal);
+        await postModal(trigger, modalData.queryModal);
       } 
       else if (data.text != null) {
         let searchRE = /(?<term>[\w]{1,})/i;
-        if (data.text.search(searchRE) != -1) {
+
+        if (data.text.search(searchRE) != -1) 
+        {
           let response = "";
           console.log ("Shortcut command used (search)");
 
@@ -578,18 +534,9 @@ async function handleSlashCommand(data)
           {
             searchTerm = searchTerm.toUpperCase();
             let queryModal = JSON.parse(JSON.stringify(modalData.queryModal));
+            queryModal.blocks = [];
+            queryModal.callback_id = "Display";
             queryModal.blocks.push(
-              {
-                "type": "section",
-                "text": {
-                  "type": "plain_text",
-                  "text": ":mag: Searching for term: " + searchTerm,
-                  "emoji": true
-                }
-              },
-              {
-                "type": "divider"
-              },
               {
                 "type": "section",
                 "text": {
@@ -601,37 +548,22 @@ async function handleSlashCommand(data)
             );
 
             await postModal(trigger, queryModal);
-
-            try {
-            
-              console.log(val);
-            }
-            catch (error)
-            {
-              console.error("Error in 1: ", error);
-            }
           } 
           else if (termExists == -1) // There was some sort of database error
           {
             response = "Sorry, there was an error trying to retrieve the term.";
-
             await sendMessageToDM(response, user);
           }
           else // Term exists, so apply the new description.
           {
-          
             console.log("Testing: Sucessfully found term using shortcut.");
             console.log(termExists);
-
-            response = termExists;
-            let params = {
-              channel: data.user_id,
-              text: response
-            };
-
+          
             try {
               searchTerm = searchTerm.toUpperCase();
               let queryModal = JSON.parse(JSON.stringify(modalData.queryModal));
+              queryModal.blocks = [];
+              queryModal.callback_id = "Display";
               queryModal.blocks.push(
                 {
                   "type": "section",
@@ -669,7 +601,18 @@ async function handleSlashCommand(data)
 
     case "/searchbytag":
 
-      if (true)
+      if (data.text != "")
+      {
+        // get the tag
+        let tag = data.text;
+
+        // call the function and get the response
+        let message = await findTermsWithTag(tag);
+
+        // Tell the user
+        await sendMessageToDM(message, user);
+      }
+      else
       {
         // Get the modal data
         let modal = JSON.parse(JSON.stringify(modalData.searchByTag));
@@ -1706,4 +1649,113 @@ async function addTagToListOfTags(newTag)
 
   // We did it. So now just return 1 to say success, incase we want to add validation
   return 1;
+}
+
+// Function created for moving all the code needed for the /terms command to one spot.
+// This lets the menu button work as well, rather than pasting the same code in two spots.
+// Accepts the letter given to narrow down the results, or null if just the general version is being used.
+async function createDictionaryData(givenLetter)
+{
+  if (givenLetter == null) // No letter given as a follow up
+  {
+    let dictionary = await readFromDB2(); //get all the terms from the database
+    let termsModal = JSON.parse(JSON.stringify(modalData.termsModal)); //get the outline of the terms modal from modalInfo.js and make a useable copy of it
+    let firstletter = ""; //to make letter headers in the modal
+
+    dictionary.forEach(function(entry) { //for each term in the database
+      //if the firstletter var matches the first letter of the term, simply append the term to the modal's blocks
+      if (entry.charAt(0).toUpperCase() == firstletter) {
+        termsModal.blocks.push(
+          {
+            "type": "section",
+            "text": {
+              "type": "plain_text",
+              "text": entry,
+              "emoji": true
+            }
+          }
+        );
+      } else { //the firstletter var doesn't match the first letter of the term
+        //change the firstletter var to match the first letter of the term
+        firstletter = entry.charAt(0).toUpperCase();
+        //append both a header block of the firstletter and a block for the term to the modal's blocks
+        termsModal.blocks.push(
+          {
+            "type": "header",
+            "text": {
+              "type": "plain_text",
+              "text": firstletter,
+              "emoji": true
+            }
+          },
+          {
+            "type": "section",
+            "text": {
+              "type": "plain_text",
+              "text": entry,
+              "emoji": true
+            }
+          }
+        );
+      }
+    });
+
+    // Return the finished modal
+    return termsModal;
+  }
+  else if (givenLetter != null) // An extra letter was given to narrow down the dictionary
+  {
+    let dictionary = await readFromDB2(); //get all the terms from the database
+    let termsModal = JSON.parse(JSON.stringify(modalData.termsModal)); //get the outline of the terms modal from modalInfo.js and make a useable copy of it
+    let firstletter = givenLetter.toUpperCase(); //to make the letter header in the modal
+    let termsAdded = false; //to check if any terms were added to the modal
+
+    //append a header block for the firstletter to the modal's blocks
+    termsModal.blocks.push(
+      {
+        "type": "header",
+        "text": {
+          "type": "plain_text",
+          "text": firstletter,
+          "emoji": true
+        }
+      }
+    );
+
+    //for any term starting with firstletter in the database, append a block for it to the modal
+    dictionary.forEach(function(entry) {
+      if (entry.charAt(0).toUpperCase() == firstletter) { //check if firstletter matches the first letter of the term
+        termsAdded = true; //at least one term has been added
+        termsModal.blocks.push(
+          {
+            "type": "section",
+            "text": {
+              "type": "plain_text",
+              "text": entry,
+              "emoji": true
+            }
+          }
+        );
+      } 
+    });
+
+    //if no terms were added (none start with the given letter), append a block to tell the user
+    if(termsAdded == false) { 
+      termsModal = JSON.parse(JSON.stringify(modalData.termsModal)); //reset to the outline of the terms modal (to clear the letter header)
+      //append a block stating that no terms start with the given letter
+      termsModal.blocks.push( 
+        {
+          "type": "section",
+          "text": {
+            "type": "plain_text",
+            "text": "There are currently no terms that start with the letter " + firstletter,
+            "emoji": true
+          }
+        }
+      );
+    }
+
+    // Return the finished modal
+    return termsModal;
+  }
 }
