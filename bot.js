@@ -94,6 +94,7 @@ async function handleInteractionEvent(data)
       }
       else if (data.actions[0].block_id == "Extra_Buttons")
       {
+        let newModal;
         let buttonType = data.actions[0].action_id;
         console.log("Button ID: " + buttonType);
 
@@ -101,12 +102,22 @@ async function handleInteractionEvent(data)
         {
           case "addTag":
             console.log("Posting add tag modal");
-            await postModal(trigger, modalData.addTerm);
+
+            // Get the modal all ready to go
+            newModal = JSON.parse(JSON.stringify(modalData.addTag));
+            newModal.blocks[3].element.options = await createTagOptionsArray();
+
+            await postModal(trigger, newModal);
           break;
 
           case "tagSearch":
             console.log("Posting tag search modal");
-            await postModal(trigger, modalData.);
+
+            // Get the modal all ready to go
+            newModal = JSON.parse(JSON.stringify(modalData.searchByTag));
+            newModal.blocks[0].element.options = await createTagOptionsArray();
+
+            await postModal(trigger, newModal);
           break;
 
           case "dictionary":
@@ -175,7 +186,6 @@ async function handleInteractionEvent(data)
 
         await sendMessageToDM(message, user);
       }
-
       else if (data.view.callback_id == "searchByTag") {
         let message; 
         let selectedTag = data.view.state.values.searchByTag.searchByTag.selected_option.text.text;
@@ -184,7 +194,6 @@ async function handleInteractionEvent(data)
 
         await sendMessageToDM(message, user);
       } 
-
       else if (data.view.callback_id == "deleteTerm")
       {
         let message = "";
@@ -327,27 +336,20 @@ async function handleSlashCommand(data)
 
     case "/addtag":
 
-      let tags = await getListOfTags(); 
-      let newOptionsArray = []; 
-      let newOption;
-      let i; 
-      for (i = 0; i < tags.regular.length; i++) {
-          newOption = { 
-            text: {
-              type: "plain_text",
-              text: tags.regular[i]
-            },
-            value: "Choice " + i
-          };
-        newOptionsArray.push(newOption);
+      if (true)
+      {
+        // Get the modal data
+        let newModal = JSON.parse(JSON.stringify(modalData.addTag));
+
+        // Create the options array to put in the modal 
+        let newOptionsArray = await createTagOptionsArray();
+        
+        // Put the new options into the modal data
+        newModal.blocks[3].element.options=newOptionsArray;
+
+        // Post the modal
+        await postModal(trigger, newModal);
       }
-
-      let newModal = JSON.parse(JSON.stringify(modalData.addTag));
-
-      newModal.blocks[3].element.options=newOptionsArray;
-
-      await postModal(trigger, newModal);
-
       break;
 
     case "/add":
@@ -666,27 +668,21 @@ async function handleSlashCommand(data)
     break;
 
     case "/searchbytag":
-      let tag = await getListOfTags(); 
-      let newOptionArray = []; 
-      let option;
 
-      for (let i = 0; i < tag.regular.length; i++) {
-          option = { 
-            text: {
-              type: "plain_text",
-              text: tag.regular[i]
-            },
-            value: "Choice " + i
-          };
-        newOptionArray.push(option);
+      if (true)
+      {
+        // Get the modal data
+        let modal = JSON.parse(JSON.stringify(modalData.searchByTag));
+
+        // Get the options array to put inside the modal
+        let newOptionsArray = await createTagOptionsArray();
+
+        // Put the thing in the thing
+        modal.blocks[0].element.options=newOptionsArray;
+
+        // Post it
+        await postModal(trigger, modal);
       }
-
-      let modal = JSON.parse(JSON.stringify(modalData.searchByTag));
-
-      modal.blocks[0].element.options=newOptionArray;
-
-      await postModal(trigger, modal);
-
       break;
   } 
 
@@ -1031,6 +1027,28 @@ async function getTagsForTerm(term)
     console.log("There are no tags for this term");
     return null;
   }
+}
+
+// Function to be used for creating the options array needed for getting the list of tags in the modal menu
+// Created this since it's needed in 3 seprate areas, and it's a lot of code to just copy.
+async function createTagOptionsArray()
+{
+  let tags = await getListOfTags(); 
+  let newOptionsArray = []; 
+  let option;
+
+  for (let i = 0; i < tags.regular.length; i++) {
+      option = { 
+        text: {
+          type: "plain_text",
+          text: tags.regular[i]
+        },
+        value: "Choice " + i
+      };
+    newOptionsArray.push(option);
+  }
+
+  return newOptionsArray;
 }
 
 //Clay. Used Ben's updateTag function. 
