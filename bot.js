@@ -86,10 +86,10 @@ async function handleInterationEvent(data)
         let returnedTags;         
         let input = data.view.state.values.termInput.termEntered.value;
         console.log(input);
-        //let termExists = await queryDB(input); //returns "result"
+        let termExists = await queryDB(input); //returns "result"
         
-        /*if (termExists == null) {
-          let message = "Sorry, the term you entered does not exist. Please check for spelling.";
+        if (termExists == null) {
+          let message = "Sorry, the term you entered does not exist. Please check for spelling or try /add to create the term.";
           let params = {
             channel: data.user.id,
             text: message
@@ -102,11 +102,13 @@ async function handleInterationEvent(data)
           catch (error) {
             console.error("Error posting message " + error);
           }
+          return giveBack;
         }
-        */
+      
+       //else
           console.log("entered the termExists if block");
           returnedTags = getTagsForTerm(input);
-          let myTags = await returnedTags.lower;
+          ///let myTags = await returnedTags.lower;
           
           let message = "Tags associated with " + input + ": " + (await returnedTags).lower;
 
@@ -122,7 +124,7 @@ async function handleInterationEvent(data)
           catch (error) {
             console.error("Error posting message " + error);
           }
-        
+      
       }
 
       else if (data.view.callback_id == "addTag") {
@@ -336,7 +338,8 @@ async function handleInterationEvent(data)
             console.error("Error in 2: ", error);
           }
         }
-      } 
+      }
+       
 
 
 
@@ -777,7 +780,7 @@ async function handleSlashCommand(data)
         else // Term exists, so post the tags associated with the given term.
         {
           response = await getTagsForTerm(wordToGetTagsFrom);
-          let newResponse = response.lower;
+          let newResponse = "Tags associated with " + wordToGetTagsFrom + ": " + response.lower;
           console.log("Testing: Sucessfully posted term's tags using shortcut.");
           let params = {
             channel: data.user_id,
