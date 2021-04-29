@@ -149,6 +149,51 @@ async function handleInteractionEvent(data)
         await sendMessageToDM(message, user);
         
       }
+      else if (data.view.callback_id == "view-term-tags") { 
+        let returnedTags;         
+        let input = data.view.state.values.termInput.termEntered.value;
+        console.log(input);
+        let termExists = await queryDB(input); //returns "result"
+        
+        if (termExists == null) {
+          let message = "Sorry, the term you entered does not exist. Please check for spelling or try /add to create the term.";
+          let params = {
+            channel: data.user.id,
+            text: message
+          };          
+          try {
+            let val = await Bot.chat.postMessage(params);
+            console.log(val);
+            return giveBack;
+          }
+          catch (error) {
+            console.error("Error posting message " + error);
+          }
+          return giveBack;
+        }
+      
+       //else
+          console.log("entered the termExists if block");
+          returnedTags = getTagsForTerm(input);
+          ///let myTags = await returnedTags.lower;
+          
+          let message = "Tags associated with " + input + ": " + (await returnedTags).lower;
+
+          let params = {
+            channel: data.user.id,
+            text: message
+          };
+          
+          try {
+            let val = await Bot.chat.postMessage(params);
+            console.log(val);
+          }
+          catch (error) {
+            console.error("Error posting message " + error);
+          }
+      
+      }
+
       else if (data.view.callback_id == "addTag") {
         
         // These two will either be given a value, or null if nothing was entered
@@ -470,6 +515,7 @@ async function handleSlashCommand(data)
       }
     break;// out of terms
 
+    //Clay
     case "/edit":    
       if (data.text == ("" || '')){
         await postModal(trigger, modalData.editModal);
@@ -597,7 +643,80 @@ async function handleSlashCommand(data)
           }
         } 
       } 
-    break;
+    break; //out of edit
+
+    //Clay
+    case "/viewtags":   
+    if (data.text == ("" || '')){
+      await postModal(data, modalData.viewTagModal);
+    }
+      else {
+        let viewTagTermRE = /(?<term>[\w]{1,})/i; 
+        let response = "";
+        //if (data.event.text.search(editTermRE) != -1) {
+        console.log ("Shotcut command used (viewTags)");
+
+        const matchArray = data.text.match(viewTagTermRE); // will return an array with the groups from the regEx
+        let wordToGetTagsFrom = matchArray.groups.term;  // This will hold the term the user wishes to edit
+        
+        let termExists = await getDesc(wordToGetTagsFrom); // Store data in termExists if the term is in the DB
+        if (termExists == null) // Term doesn't exist
+        {
+          response = "Sorry, the term you entered does not exist. I can't view what is not there. Try /add to create the term.";
+
+          let params = {
+            channel: data.user_id,
+            text: response
+          };
+
+          try {
+            let val = await Bot.chat.postMessage(params);
+            console.log(val);
+          }
+          catch (error)
+          {
+            console.error("Error in 1: ", error);
+          }
+        }
+        else if (termExists == -1) // There was some sort of database error
+        {
+          response = "Sorry, there was an error trying to retrieve the term.";
+
+          let params = {
+            channel: data.user_id,
+            text: response
+          };
+
+          try {
+            let val = await Bot.chat.postMessage(params);
+            console.log(val);
+          }
+          catch (error)
+          {
+            console.error("Error in 1: ", error);
+          }
+        }
+        else // Term exists, so post the tags associated with the given term.
+        {
+          response = await getTagsForTerm(wordToGetTagsFrom);
+          let newResponse = "Tags associated with " + wordToGetTagsFrom + ": " + response.lower;
+          console.log("Testing: Sucessfully posted term's tags using shortcut.");
+          let params = {
+            channel: data.user_id,
+            text: newResponse
+          };
+
+          try {
+            let val = await Bot.chat.postMessage(params);
+            console.log(val);
+          }
+          catch (error)
+          {
+            console.error("Error in 1: ", error);
+          }
+        }
+      } 
+    break; //out of viewTags
 
     case "/searchbytag":
 
@@ -1735,11 +1854,6 @@ async function removeFromListOfTags(tagList)
     console.error("There was an error updating the overall tag list.");
     console.error(error);
   }
-}
-
-async function doTheRemoval()
-{
-
 }
 
 // Function created for moving all the code needed for the /terms command to one spot.

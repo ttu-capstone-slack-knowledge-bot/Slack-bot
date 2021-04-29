@@ -337,11 +337,49 @@ module.exports = {
     ],
     "callback_id": "edit-term"
   }, //end of editModal
+
+  //Clay
+  viewTagModal:  {
+    "type": "modal",
+    "submit": {
+      "type": "plain_text",
+      "text": "Submit",
+      "emoji": true
+    },
+    "close": {
+      "type": "plain_text",
+      "text": "Cancel",
+      "emoji": true
+    },
+    "title": {
+      "type": "plain_text",
+      "text": "View Tags",
+      "emoji": true
+    },
+    "blocks": [
+      {
+        "type": "input",
+        "block_id": "termInput",
+        "label": {
+          "type": "plain_text",
+          "text": "Which term's tags do you want to view?",
+          "emoji": false
+        },
+        "element": {
+          "type": "plain_text_input",
+          "action_id": "termEntered"
+        },
+        "optional": false
+      }
+    ],
+    "callback_id": "view-term-tags"
+  },
+
   //Hannah
   addTerm: {
     "title": {
       "type": "plain_text",
-      "text": "Add"
+      "text": "Add Term"
     },
     "submit": {
       "type": "plain_text",
