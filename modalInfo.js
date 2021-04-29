@@ -209,7 +209,17 @@ module.exports = {
         "type": "section",
         "text": {
           "type": "mrkdwn",
-          "text": "• Need to know what a term means? Use the slash command */query* to look up anything in my knowledge base!\n• Want to tell me a term I should know? Use the slash command */add* to add a term to the database.\n• Is something I know not right? Use the slash command */edit* to change a definition in my knowledge base.\n• Is there someting I know that I don't need to anymore? Use the slash command */delete* to delete a term from my knowledge base.\n"
+          "text": "• */query* - Look up any term within my knowledge base, and if I know it I will tell you what it means!\n• */add* - Add a term to my knowledge base so that I can remember it forever!\n• */edit* - Edit the definition of a term within my knowledge base to fix any typos or incorrect information.\n• */delete* - Deletes terms from my knowledge base. This is a permanent delete, so make sure you use this only when you definitely mean to. You can always use /add to put the term back in the knowledge base if you do delete something by accident.\n"
+        }
+      },
+      {
+        "type": "divider"
+      },
+      {
+        "type": "section",
+        "text": {
+          "type": "mrkdwn",
+          "text": "*Aditional Commands*\n• */terms* - See a dictionary of everything I know, sorted by the letter.\n• */addtag* - Add a tag to something within my knowledge base to help me sort what I know.\n• */searchbytag* - Tell me a specific tag, and I'll tell you everything I know that has been tagged with that. This helps group up large amount of information."
         }
       },
       {

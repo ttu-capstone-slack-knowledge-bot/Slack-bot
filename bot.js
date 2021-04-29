@@ -1341,6 +1341,9 @@ async function deleteTermFromDatabase(term)
       }
     };
 
+    // To be used after the term has been deleted
+    let deletedTags = await getTagsForTerm(term.toLowerCase());
+
     // Try deleteing the term!
     try {
       let result = await db.delete(deleteParams).promise();
@@ -1353,6 +1356,9 @@ async function deleteTermFromDatabase(term)
       console.error(error);
       message = "Sorry, there was an error deleting the term. Please try again later.";
     }
+
+    // Now check if these tags still exist in the database
+    await removeFromListOfTags(deletedTags.reg);
   }
 
   // Return the message to be sent back to the user
@@ -1649,6 +1655,91 @@ async function addTagToListOfTags(newTag)
 
   // We did it. So now just return 1 to say success, incase we want to add validation
   return 1;
+}
+
+// Removes a tag from the list of tags when a term is deleted if that tag no longer exists in the knowledge base.
+// Accepts the tagList of the term that just got deleted. Returns nothing
+async function removeFromListOfTags(tagList)
+{
+  let allTags = await getListOfTags();
+  let deleteAt = 0;
+
+  if (tagList.length == 0)
+  {
+    console.log("No tags to check for");
+    return;
+  }
+
+  console.log("About to check for tags to remove from the list");
+
+  
+  for (let x = 0; x < tagList.length; x++) 
+  {
+    let item = tagList[x];
+
+    let tagExists = await findTermsWithTag(item);
+
+    // Since findTermsWithTag returns a string, check if this key phrase is in the returned string. If so, the tag is gone
+    if (tagExists.includes("I didn't find"))
+    {
+      console.log("No more terms exist with that tag.");
+
+      // Find the index of the tag in the major list of tags
+      deleteAt = allTags.lower.indexOf(item.toLowerCase());
+
+      console.log("Found term at index " + deleteAt);
+
+      // Remove it from the list
+      allTags.lower.splice(deleteAt, 1);
+
+      console.log("New array:\n" + allTags.lower);
+
+      // Do the same for the regular cased list.
+      deleteAt = allTags.regular.indexOf(item);
+
+      console.log("Found term at index " + deleteAt);
+
+      // Remove it from the list
+      allTags.regular.splice(deleteAt, 1);
+
+      console.log("New array:\n" + allTags.regular);
+    }
+  }
+
+  // Update the tag list. If nothing was changed, then this shouldn't affect anything
+  console.log("Pushing updated arrays to database.");
+
+  const params = {
+    TableName: "Metadata",
+    Key: {
+      DataType: "TagList"
+    },
+    UpdateExpression: 'set #a = :x, #b = :y',
+    ExpressionAttributeNames: {
+      '#a' : 'RegTags',
+      '#b' : 'LowerTags'
+    },
+    ExpressionAttributeValues: {
+      ':x' : allTags.regular,
+      ':y' : allTags.lower
+    }
+  };
+
+  try 
+  {
+    let result = await db.update(params).promise();
+    console.log("Tag List has been updated: \n" + result);
+  }
+  catch (error)
+  {
+    console.error("There was an error updating the overall tag list.");
+    console.error(error);
+  }
+}
+
+async function doTheRemoval()
+{
+
 }
 
 // Function created for moving all the code needed for the /terms command to one spot.
