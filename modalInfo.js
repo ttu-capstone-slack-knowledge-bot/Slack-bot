@@ -290,18 +290,6 @@ module.exports = {
       "emoji": true
     },
     "blocks": [
-      {
-        "type": "section",
-        "block_id": "editTermHeader",
-        "text": {
-          "type": "plain_text",
-          "text": ":pencil: Edit\n\nLet's edit a term.",
-          "emoji": true
-        }
-      }, //end of editHeader
-      {
-        "type": "divider"
-      },
       { //TERM  INPUT
         "type": "input",
         "block_id": "editTermInput1",
