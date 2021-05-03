@@ -141,19 +141,7 @@ async function handleInteractionEvent(data)
 
     case "view_submission": // submit button on a modal was pressed
 
-      if (data.view.callback_id == "getName")
-      {
-        // This is part of the /testing command. Doesn't need to stick around much longer.
-        let nameInput = data.view.state.values.nameInput.nameEntered.value;
-        console.log(nameInput);
-        console.log("Did that work?");
-
-        let message = "Thanks " + nameInput + ", nice to meet you!";
-
-        await sendMessageToDM(message, user);
-        
-      }
-      else if (data.view.callback_id == "view-term-tags") { 
+      if (data.view.callback_id == "view-term-tags") { 
         let returnedTags;         
         let input = data.view.state.values.termInput.termEntered.value;
         console.log(input);
@@ -826,8 +814,9 @@ async function handleEvent(data)
       
       break;
 
+    // RETIRED FEATURES - left here in case another team is given this to continue on
     // Bot will react to @ mentions, both in general chat channels and DM's
-    case 'app_mention':
+    case 'app_mention':  
     case 'DM':
       // Regular expressions to decide if a string matches the pattern needed or not.
       let askForTermRE = /(what does) (?<term>[a-zA-Z0-9 ]{1,}) (mean|stand for)/i;  // Will match anything in the form of "what does ___ mean/stand for"
