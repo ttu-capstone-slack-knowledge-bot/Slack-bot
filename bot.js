@@ -637,7 +637,7 @@ async function handleSlashCommand(data)
     //Clay
     case "/viewtags":   
     if (data.text == ("" || '')){
-      await postModal(data, modalData.viewTagModal);
+      await postModal(trigger, modalData.viewTagModal);
     }
       else {
         let viewTagTermRE = /(?<term>[\w]{1,})/i; 

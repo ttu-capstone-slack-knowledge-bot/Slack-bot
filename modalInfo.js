@@ -812,7 +812,7 @@ module.exports = {
         "type": "section",
         "text": {
           "type": "plain_text",
-          "text": "/query [term]                                    search for a term\n/add [term]: [definition]                   adds a term to the database\n/edit [term]: [definition]                   edits a term in the database\n/delete [term]                                   deletes a term in the database \n/terms [letter]                                   shows terms starting with a letter\n /viewtags [term]                               shows all tags a term has \n/addtag [term]: [tag]                         tags a term in the database  \n /searchbytag [tag]                            searches for terms with a given tag",
+          "text": "/query [term]                                    search for a term\n/add [term]: [definition]                   adds a term to the database\n/edit [term] with [definition]           edits a term in the database\n/delete [term]                                   deletes a term in the database \n/terms [letter]                                   shows terms starting with a letter\n /viewtags [term]                               shows all tags a term has \n/addtag [term]: [tag]                         tags a term in the database  \n /searchbytag [tag]                            searches for terms with a given tag",
           "emoji": true
         }
       }
